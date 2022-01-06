@@ -272,6 +272,8 @@ class Game {
 		draw(x, y, color) */
 	draw(x, y, c) {
 		if (!c) { this.draw(x[0], x[1], y); return; }
+		x = Math.floor(x);
+		y = Math.floor(y);
 		this.ctx.fillStyle = style(c);
 		const ps = this.pixelScale;
 		this.ctx.fillRect(x * ps, y * ps, ps,ps);
@@ -282,6 +284,8 @@ class Game {
 		@param {Point} p2 second point
 		@param {Color} c color to draw with */
 	drawLine(p1,p2,c) {
+		p1 = floor(p1);
+		p2 = floor(p2);
 		let x, y, xe, ye, i;
 		const dx = p2[0] - p1[0]; 
 		const dy = p2[1] - p1[1];
@@ -329,6 +333,8 @@ class Game {
 		@param {number} r radius to draw with
 		@param {Color} c color to draw with */
 	drawCircle(p, r, c) {
+		p = floor(p);
+		r = floor(r);
 		let x0 = 0;
 		let y0 = r;
 		let d = 3 - 2 * r;
@@ -356,6 +362,7 @@ class Game {
 		@param {number} h height of ellipse
 		@param {Color} c color to draw with */
 	drawEllipse(p, w, h, c) {
+		p = floor(p);
 		if (w == 0 || h == 0) { return; }
 		let a2 = w*w;
 		let b2 = h*h;
