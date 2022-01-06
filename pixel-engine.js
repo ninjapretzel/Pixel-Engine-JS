@@ -137,7 +137,7 @@ class Game {
 		this.ctx.fillRect(px * ps, py * ps, ps,ps);
 	}
 	
-	line(p1,p2,c) {
+	drawLine(p1,p2,c) {
 		let x, y, xe, ye, i;
 		const dx = p2[0] - p1[0]; 
 		const dy = p2[1] - p1[1];
