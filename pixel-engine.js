@@ -167,6 +167,24 @@ function keyHeld(key) { return mainGame.keyHeld(key); }
 	@param {string} key name of key to check
 	@returns {boolean} true if released this frame, false otherwise */
 function keyReleased(key) { return mainGame.keyReleased(key); }
+
+/** Const for left mouse button */   const LEFT_MOUSE = 0;
+/** Const for right mouse button */  const RIGHT_MOUSE = 2;
+/** Const for middle mouse button */ const MIDDLE_MOUSE = 1;
+
+/** Get whether a mouse button has been pressed this frame 
+	@param {string} button name of button to check
+	@returns {boolean} true if pressed this frame, false otherwise */
+function mousePressed(button) { return mainGame.mousePressed(button); }
+/** Get whether a mouse button has been held this frame 
+	@param {string} button name of button to check
+	@returns {boolean} true if held this frame, false otherwise */
+function mouseHeld(button) { return mainGame.mouseHeld(button); }
+/** Get whether a mouse button has been released this frame 
+	@param {string} button name of button to check
+	@returns {boolean} true if released this frame, false otherwise */
+function mouseReleased(button) { return mainGame.mouseReleased(button); }
+
 /** function to clear the canvas with a given color
 	@param {Color} c color to clear with*/
 function clear(c) { return mainGame.clear(c); }
@@ -214,6 +232,7 @@ function fillRect(p, w, h, c) { return mainGame.fillRect(p, w, h, c); }
 class Game {
 	constructor(canvas, pixelScale = 2, fps = 60) {
 		if (!canvas.getContext) { return; }
+		canvas.oncontextmenu = function(e) { e.preventDefault(); e.stopPropagation(); }
 		mainGame = this;
 		this.canvas = canvas;
 		this.ctx = canvas.getContext("2d");
@@ -222,19 +241,20 @@ class Game {
 		this.pixelScale = pixelScale;
 		this.width = canvas.width / pixelScale;
 		this.height = canvas.height / pixelScale;
-		console.log("Initialized game", this.width, "x", this.height, "@",pixelScale,"px");
+		console.log("Initializing game", this.width, "x", this.height, "@",pixelScale,"px");
+		
 		this.buffer = this.ctx.createImageData(this.canvas.width, this.canvas.height);
 		this.keys = {}
 		this.lastKeys = {}
+		this.mouse = {}
+		this.lastMouse = {}
 		canvas.addEventListener("keydown", (e) => {
 			if (this.keys[e.key]) { return; }
-			this.keys[e.key] = true;
-			// console.log("keydown", e);
+			this.keys[e.key] = true; 
 		});
-		canvas.addEventListener("keyup", (e) => {
-			delete this.keys[e.key];
-			// console.log("keyup", e);
-		});
+		canvas.addEventListener("keyup", (e) => { delete this.keys[e.key]; });
+		canvas.addEventListener("mousedown", (e) => { this.mouse[e.button] = true; });
+		canvas.addEventListener("mouseup", (e) => { delete this.mouse[e.button]; });
 		
 		this.clear([40,80,160]);
 		this.refresh = setInterval( ()=>{
@@ -255,13 +275,28 @@ class Game {
 		@returns {boolean} true if released this frame, false otherwise */
 	keyReleased(key) { return !this.keys[key] && this.lastKeys[key]; }
 	
+	/** Get whether a mouse button has been pressed this frame 
+		@param {string} button name of button to check
+		@returns {boolean} true if pressed this frame, false otherwise */
+	mousePressed(button) { return this.mouse[button] && !this.lastMouse[button]; }
+	/** Get whether a mouse button has been held this frame 
+		@param {string} button name of button to check
+		@returns {boolean} true if held this frame, false otherwise */
+	mouseHeld(button) { return this.mouse[button]; }
+	/** Get whether a mouse button has been released this frame 
+		@param {string} button name of button to check
+		@returns {boolean} true if released this frame, false otherwise */
+	mouseReleased(button) { return !this.mouse[button] && this.lastMouse[button]; }
+	
 	/** internal function to run updates with event handling logic */
 	tick() {
 		// console.log("tick");
 		mainGame = this;
 		this.update();
 		this.lastKeys = this.keys;
+		this.lastMouse = this.mouse;
 		this.keys = {...this.lastKeys};
+		this.mouse = {...this.lastMouse};
 	}
 	/** overridable function for game update logic */
 	update() {}
@@ -520,9 +555,8 @@ class Game {
 				this.draw(x, y, c);
 			}
 		}
-		
-		
 	}
+	
 	
 	
 	
