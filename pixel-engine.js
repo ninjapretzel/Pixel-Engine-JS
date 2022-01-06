@@ -170,28 +170,45 @@ function keyReleased(key) { return mainGame.keyReleased(key); }
 /** function to clear the canvas with a given color
 	@param {Color} c color to clear with*/
 function clear(c) { return mainGame.clear(c); }
-/** Draws a single pixel in the given color
-	can be called with either:
+/** Draws a single pixel in the given color. Can be called with either:
 	- `draw(point, color)`
 	- `draw(x, y, color)` */
 function draw(x,y,c) { return mainGame.draw(x,y,c); }
-/** Draws a line between two points, in the given color
+/** Draw a line between two points, in the given color
 	@param {Point} p1 first point
 	@param {Point} p2 second point
 	@param {Color} c color to draw with */
 function drawLine(p1, p2, c) { return mainGame.drawLine(p1, p2, c); }
-/** Draws a circle centered on the given point, with the given radius, in the given color
+/** Draw an empty circle centered on the given point, with the given radius, in the given color
 		@param {Point} p point to draw at
 		@param {number} r radius to draw with
 		@param {Color} c color to draw with */
 function drawCircle(p, r, c) { return mainGame.drawCircle(p, r, c); }
+/** Draw a filled circle centered on the given point, with the given radius, in the given color
+		@param {Point} p point to draw at
+		@param {number} r radius to draw with
+		@param {Color} c color to draw with */
+function fillCircle(p, r, c) { return mainGame.fillCircle(p, r, c); }
 /** Draw an empty ellipse centered at a point
 	@param {Point} p point to draw around
 	@param {number} w width of ellipse
 	@param {number} h height of ellipse
 	@param {Color} c color to draw with */
 function drawEllipse(p, w, h, c) { return mainGame.drawEllipse(p, w, h, c); }
-
+/** Draw a filled ellipse centered at a point
+	@param {Point} p point to draw around
+	@param {number} w width of ellipse
+	@param {number} h height of ellipse
+	@param {Color} c color to draw with */
+function fillEllipse(p, w, h, c) { return mainGame.fillEllipse(p, w, h, c); }
+/** Draws a rectangle in the given color. Can be called with either:
+	- `drawRect(p, w, h, color)` where `p` is the top left, and `w`/`h` are width and height
+	- `drawRect(p1, p2, color)` where `p1` and `p2` are bounding rectangles*/
+function drawRect(p, w, h, c) { return mainGame.drawRect(p, w, h, c); }
+/** Draws a filled rectangle in the given color. Can be called with either:
+	- `drawRect(p, w, h, color)` where `p` is the top left, and `w`/`h` are width and height
+	- `drawRect(p1, p2, color)` where `p1` and `p2` are bounding rectangles*/
+function fillRect(p, w, h, c) { return mainGame.fillRect(p, w, h, c); }
 
 /** Primary class for override when creating a PGE game */
 class Game {
@@ -265,11 +282,9 @@ class Game {
 		this.ctx.fillRect(0,0,this.canvas.width, this.canvas.height);
 	}
 	
-	/** Draws a single pixel in the given color
-		can be called with either:
-		draw(point, color)
-		- or -
-		draw(x, y, color) */
+	/** Draws a single pixel in the given color. Can be called with either:
+		- `draw(point, color)`
+		- `draw(x, y, color)` */
 	draw(x, y, c) {
 		if (!c) { this.draw(x[0], x[1], y); return; }
 		x = Math.floor(x);
@@ -279,7 +294,7 @@ class Game {
 		this.ctx.fillRect(x * ps, y * ps, ps,ps);
 	}
 	
-	/** Draws a line between two points, in the given color
+	/** Draw a line between two points, in the given color
 		@param {Point} p1 first point
 		@param {Point} p2 second point
 		@param {Color} c color to draw with */
@@ -328,13 +343,13 @@ class Game {
 			
 	}
 	
-	/** Draws a circle centered on the given point, with the given radius, in the given color
+	/** Draw an empty circle centered on the given point, with the given radius, in the given color
 		@param {Point} p point to draw at
 		@param {number} r radius to draw with
 		@param {Color} c color to draw with */
 	drawCircle(p, r, c) {
 		p = floor(p);
-		r = floor(r);
+		r = Math.floor(r);
 		let x0 = 0;
 		let y0 = r;
 		let d = 3 - 2 * r;
@@ -356,6 +371,34 @@ class Game {
 		}
 	}
 	
+	/** Helper function for filled shapes */
+	scanLine (sx, ex, ny, c) {
+		for (let i = sx; i <= ex; i++) { this.draw(i, ny, c); }
+	}
+	
+	/** Draw a filled circle centered on the given point, with the given radius, in the given color
+		@param {Point} p point to draw at
+		@param {number} r radius to draw with
+		@param {Color} c color to draw with */
+	fillCircle(p, r, c) {
+		p = floor(p);
+		r = Math.floor(r);
+		let x0 = 0;
+		let y0 = r;
+		let d = 3 - 2 * r;
+		
+		if (r == 0) { return; }
+		while (y0 >= x0) {
+			this.scanLine(p[X] - x0, p[X] + x0, p[Y] - y0, c);
+			this.scanLine(p[X] - y0, p[X] + y0, p[Y] - x0, c);
+			this.scanLine(p[X] - x0, p[X] + x0, p[Y] + y0, c);
+			this.scanLine(p[X] - y0, p[X] + y0, p[Y] + x0, c);
+			
+			if (d < 0) { d += 4 * x0 + 6; x0++; }
+			else { d += 4 * (x0 - y0) + 10; x0++; y0--; }
+		}
+	}
+	
 	/** Draw an empty ellipse centered at a point
 		@param {Point} p point to draw around
 		@param {number} w width of ellipse
@@ -363,6 +406,8 @@ class Game {
 		@param {Color} c color to draw with */
 	drawEllipse(p, w, h, c) {
 		p = floor(p);
+		w = Math.floor(w);
+		h = Math.floor(h);
 		if (w == 0 || h == 0) { return; }
 		let a2 = w*w;
 		let b2 = h*h;
@@ -391,5 +436,94 @@ class Game {
 			sigma += a2 * ((4 * y) + 6);
 		}
 	}
+	/** Draw a filled ellipse centered at a point
+		@param {Point} p point to draw around
+		@param {number} w width of ellipse
+		@param {number} h height of ellipse
+		@param {Color} c color to draw with */
+	fillEllipse(p, w, h, c) {
+		p = floor(p);
+		w = Math.floor(w);
+		h = Math.floor(h);
+		if (w == 0 || h == 0) { return; }
+		let a2 = w*w;
+		let b2 = h*h;
+		let fa2 = 4 * a2;
+		let fb2 = 4 * b2;
+		let sigma;
+		let x,y;
+		
+		sigma = 2 * b2 + a2 * (1 - 2 * h);
+		x = 0; 
+		y = h;
+		for (;b2 * x <= a2*y; x++) {
+			this.scanLine(p[X] - x, p[X] + x, p[Y] - y, c);
+			this.scanLine(p[X] - x, p[X] + x, p[Y] + y, c);
+			
+			if (sigma >= 0) { sigma += fa2 * (1 - y); y--; }
+			sigma += b2 * ((4 * x) + 6);
+		}
+		
+		sigma = 2 * a2 + b2 * (1 - 2 * w);
+		x = w; 
+		y = 0;
+		for (;a2 * y <= b2 * x; y++) {
+			this.scanLine(p[X] - x, p[X] + x, p[Y] - y, c);
+			this.scanLine(p[X] - x, p[X] + x, p[Y] + y, c);
+			
+			if (sigma >= 0) { sigma += fb2 * (1 - x); x--; }
+			sigma += a2 * ((4 * y) + 6);
+		}
+	}
+	
+	/** Draws an empty rectangle in the given color. Can be called with either:
+		- `drawRect(p, w, h, color)` where `p` is the top left, and `w`/`h` are width and height
+		- `drawRect(p1, p2, color)` where `p1` and `p2` are bounding rectangles*/
+	drawRect(p, w, h, c) {
+		if (!c) {
+			let p2 = w;
+			c = h;
+			if (p[X] > p2[X]) { const t = p[X]; p[X] = p2[X]; p2[X] = t; }
+			if (p[Y] > p2[Y]) { const t = p[Y]; p[Y] = p2[Y]; p2[Y] = t; }
+			w = p2[X] - p[X];
+			h = p2[Y] - p[Y];
+		}
+		const pa = [p[X]+w, p[Y]];
+		const pb = [p[X],p[Y]+h];
+		const pc = [pa[X], pb[Y]];
+		this.drawLine(p, pa, c);
+		this.drawLine(p, pb, c);
+		this.drawLine(pb, pc, c);
+		this.drawLine(pa, pc, c);
+	}
+	
+	/** Draws a filled rectangle in the given color. Can be called with either:
+		- `drawRect(p, w, h, color)` where `p` is the top left, and `w`/`h` are width and height
+		- `drawRect(p1, p2, color)` where `p1` and `p2` are bounding rectangles*/
+	fillRect(p, w, h, c) {
+		if (!c) { 
+			let p2 = w;
+			c = h;
+			if (p[X] > p2[X]) { const t = p[X]; p[X] = p2[X]; p2[X] = t; }
+			if (p[Y] > p2[Y]) { const t = p[Y]; p[Y] = p2[Y]; p2[Y] = t; }
+			w = p2[X] - p[X];
+			h = p2[Y] - p[Y];
+		}
+		
+		let x1 = p[X]; if (x1 < 0) { x1 = 0; }
+		let y1 = p[Y]; if (y1 < 0) { y1 = 0; }
+		let x2 = p[X] + w; if (x2 >= this.width) { x2 = this.width; }
+		let y2 = p[Y] + h; if (y2 >= this.height) { y2 = this.height; }
+		
+		for (let y = y1; y < y2; y++) {
+			for (let x = x1; x < x2; x++) {
+				this.draw(x, y, c);
+			}
+		}
+		
+		
+	}
+	
+	
 	
 }
