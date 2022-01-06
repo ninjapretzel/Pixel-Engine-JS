@@ -1,6 +1,6 @@
 /** pixel-engine.js
- * single-file include for the JS version of the Pixel Game Engine
-*/
+ * single-file include for the JS version of the Pixel Game Engine (PGE)
+ * Loosely based off the One-Lone-Coder Pixel Game Engine */
 function pixelate(context){
 	context['imageSmoothingEnabled'] = false;       /* standard */
 	context['mozImageSmoothingEnabled'] = false;    /* Firefox */
@@ -8,8 +8,69 @@ function pixelate(context){
 	context['webkitImageSmoothingEnabled'] = false; /* Safari */
 	context['msImageSmoothingEnabled'] = false;     /* IE */
 }
+
+/** @typedef {[Number, Number, Number]} Color Colors are specifically an array of [R,G,B] */
+/** constant for position of Red component in vector colors */   const R = 0;
+/** constant for position of Green component in vector colors */ const G = 1;
+/** constant for position of Blue component in vector colors */  const B = 2;
+/** Constant for white */   const WHITE = [255,255,255];
+/** Constant for black */   const BLACK = [0,0,0];
+/** Constant for red */     const RED = [255,0,0];
+/** Constant for green */   const GREEN = [0,255,0];
+/** Constant for blue */    const BLUE = [0,0,255];
+/** Constant for cyan */    const CYAN = [0,255,255];
+/** Constant for magenta */ const MAGENTA = [255,0,255];
+/** Constant for yellow */  const YELLOW = [255,255,0];
+/** @typedef {[Number, Number]} Point Points are specifically an array of [X,Y] */
+/** constant for position of X-coord in vectors */ const X = 0;
+/** constant for position of Y-coord in vectors */ const Y = 1;
+
+/** TAU > PI. Specifically, TAU = 2 * PI */
 const TAU = 2 * Math.PI;
-function floor(v) { return Math.floor(v); }
+/** Floors the given number or vector
+ * @param {Array|number} v number or vector to floor
+ * @returns {Array|number} array with all components floored, or floored number */
+function floor(v) {
+	if (Array.isArray(v)) {
+		const result = [];
+		for (let i = 0; i < v.length; i++) {
+			result[i] = Math.floor(v[i]);
+		}
+		return result;
+	}
+	return Math.floor(v); 
+}
+/** Ceils the given number or vector
+ * @param {Array|number} v number or vector to ceil
+ * @returns {Array|number} array with all components ceil, or ceil number */
+function ceil(v) {
+	if (Array.isArray(v)) {
+		const result = [];
+		for (let i = 0; i < v.length; i++) {
+			result[i] = Math.ceil(v[i]);
+		}
+		return result;
+	}
+	return Math.ceil(v); 
+}
+/** Rounds the given number or vector
+ * @param {Array|number} v number or vector to round
+ * @returns {Array|number} array with all components rounded, or rounded number */
+function round(v) {
+	if (Array.isArray(v)) {
+		const result = [];
+		for (let i = 0; i < v.length; i++) {
+			result[i] = Math.round(v[i]);
+		}
+		return result;
+	}
+	return Math.round(v); 
+}
+/** Clamps the given number or vector
+ * @param {Array|number} v number or vector to clamp
+ * @param {Array|number} min minimum of clamp. Must be same type as v
+ * @param {Array|number} max maximum of clamp. Must be same type as v
+ * @returns {Array|number} array with all components clamped, or clamped number */
 function clamp(v,min=0,max=1) { 
 	if (Array.isArray(v)) {
 		const result = [];
@@ -20,21 +81,59 @@ function clamp(v,min=0,max=1) {
 	}
 	return (v < min) ? min : ((v > max) ? max : v); 
 }
-function frac(v) { return v-Math.floor(v); }
-function abs(v) { return v < 0 ? -v : v; }
-function fmod(a,b) { 
-	const c = frac(abs(a/b)) * abs(b);
-	return (a < 0) ? -c : c 
+/** Takes the fractional part of the given number or vector
+ * @param {Array|number} v number or vector to frac
+ * @returns {Array|number} array with all components frac'd, or frac'd number */
+function frac(v) {
+	if (Array.isArray(v)) {
+		const result = [];
+		for (let i = 0; i < v.length; i++) {
+			result[i] = v[i]-Math.floor(v[i]);
+		}
+		return result;
+	}
+	return v-Math.floor(v); 
 }
+/** Absolute value's the given number or vector
+ * @param {Array|number} v number or vector to abs
+ * @returns {Array|number} array with all components abs'd, or abs'd number */
+function abs(v) { 
+	if (Array.isArray(v)) {
+		const result = [];
+		for (let i = 0; i < v.length; i++) {
+			result[i] = v[i] < 0 ? -v[i] : v[i];
+		}
+		return result;
+	}
+	return v < 0 ? -v : v; 
+}
+/** Returns a random integer
+ * @param {number} a First endpoint (required)
+ * @param {number} b Second endpoint (defaults to zero)
+ * @returns {number} integer in range [a, b) or [0, a)*/
 function random(a,b=0) {
 	return Math.floor(a + (b-a) * Math.random());
 }
+/** Helper function that returns the style for a given color
+ * @param {Color|number} r Either a packed {Color} or just the red component
+ * @param {?number} g green component
+ * @param {?number} b blue component */
 function style(r,g,b) { 
-	if (Array.isArray(r)) { return style(r[0], r[1], r[2]); }
+	if (Array.isArray(r)) { b = r[2]; g = r[1]; r = r[0]; }
 	r = floor(r); g = floor(g); b = floor(b);
 	return `rgb(${r},${g},${b})`; 
 }
-function rgb(r,g,b) { return style(r*256,g*256,b*256); }
+/** Helper function to get a style from floating-point RGB colors [0,1] 
+ * @param {number} r RED component in [0, 1]
+ * @param {number} g GRN component in [0, 1]
+ * @param {number} b BLU component in [0, 1]
+ * @returns {string} style representing RGB color */
+function rgb(r,g,b) { return style(r*255,g*255,b*255); }
+/** Helper function to get a style from floating-point HSV colors [0,1]
+ * @param {number} h HUE component in [0, 1]
+ * @param {number} s SAT component in [0, 1]
+ * @param {number} v VAL component in [0, 1]
+ * @returns {string} style representing HSV color */
 function hsv(h,s,v) {
 	h = fmod(h, 1.0);
 	if (h < 0) { h += 1.0; }
@@ -53,17 +152,7 @@ function hsv(h,s,v) {
 	return rgb(v,p,q);
 }
 
-const WHITE = [255,255,255];
-const BLACK = [0,0,0];
-const RED = [255,0,0];
-const GREEN = [0,255,0];
-const BLUE = [0,0,255];
-const CYAN = [0,255,255];
-const MAGENTA = [255,0,255];
-const YELLOW = [255,255,0];
-const X = 0;
-const Y = 1;
-
+/** Primary class for override when creating a PGE game */
 class Game {
 	constructor(canvas, pixelScale = 2, fps = 60) {
 		if (!canvas.getContext) { return; }
@@ -94,19 +183,31 @@ class Game {
 		}, (1000/fps));
 		
 	}
-	
+	/** Get wether a key has been pressed this frame 
+	 * @param {string} key name of key to check
+	 * @returns {boolean} true if pressed this frame, false otherwise */
 	keyPressed(key) { return this.keys[key] && !this.lastKeys[key]; }
+	/** Get wether a key has been held this frame 
+	 * @param {string} key name of key to check
+	 * @returns {boolean} true if held this frame, false otherwise */
 	keyHeld(key) { return this.keys[key]; }
+	/** Get wether a key has been released this frame 
+	 * @param {string} key name of key to check
+	 * @returns {boolean} true if released this frame, false otherwise */
 	keyReleased(key) { return !this.keys[key] && this.lastKeys[key]; }
 	
+	/** internal function to run updates with event handling logic */
 	tick() {
 		console.log("tick");
 		this.update();
 		this.lastKeys = this.keys;
 		this.keys = {...this.lastKeys};
 	}
+	/** overridable function for game update logic */
 	update() {}
 	
+	/** function to clear the canvas with a given color
+	 * @param {Color} color to clear with*/
 	clear(c) {
 		// for (let y = 0; y < this.canvas.height; y++) {
 		// 	for (let x = 0; x < this.canvas.width; x++) {
@@ -121,22 +222,22 @@ class Game {
 		this.ctx.fillRect(0,0,this.canvas.width, this.canvas.height);
 	}
 	
-	draw() {
-		let px = arguments[0];
-		let py = arguments[1];
-		let c = arguments[2];
-		if (arguments.length == 2) {
-			px = arguments[0][0];
-			py = arguments[0][1];
-			c = arguments[1];
-		} 
-		px = floor(px);
-		py = floor(py);
+	/** Draws a single pixel in the given color
+	 * can be called with either:
+	 * draw(point, color)
+	 * - or -
+	 * draw(x, y, color) */
+	draw(x, y, c) {
+		if (!c) { this.draw(x[0], x[1], y); return; }
 		this.ctx.fillStyle = style(c);
 		const ps = this.pixelScale;
-		this.ctx.fillRect(px * ps, py * ps, ps,ps);
+		this.ctx.fillRect(x * ps, y * ps, ps,ps);
 	}
 	
+	/** Draws a line between two points, in the given color
+	 * @param {Point} p1 first point
+	 * @param {Point} p2 second point
+	 * @param {Color} c color to draw with */
 	drawLine(p1,p2,c) {
 		let x, y, xe, ye, i;
 		const dx = p2[0] - p1[0]; 
@@ -180,5 +281,30 @@ class Game {
 			
 	}
 	
+	/** Draws a circle centered on the given point, with the given radius, in the given color
+	 * @param {Point} p point to draw at
+	 * @param {number} r radius to draw with
+	 * @param {Color} c color to draw with */
+	drawCircle(p, r, c) {
+		let x0 = 0;
+		let y0 = r;
+		let d = 3 - 2 * r;
+		
+		if (r == 0) { return; }
+		
+		while (y0 >= x0) {
+			this.draw(p[0] - x0, p[1] - y0, c);
+			this.draw(p[0] - y0, p[1] - x0, c);
+			this.draw(p[0] + y0, p[1] - x0, c);
+			this.draw(p[0] + x0, p[1] - y0, c);
+			this.draw(p[0] - x0, p[1] + y0, c);
+			this.draw(p[0] - y0, p[1] + x0, c);
+			this.draw(p[0] + y0, p[1] + x0, c);
+			this.draw(p[0] + x0, p[1] + y0, c);
+			
+			if (d < 0) { d += 4 * x0 + 6; x0++}
+			else { d += 4 * (x0 - y0) + 10; x0++; y0--; }
+		}
+	}
 	
 }
