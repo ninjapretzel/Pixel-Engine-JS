@@ -10,25 +10,34 @@ div { width:auto;text-align:center;margin: 0 auto;border-style: dotted; }
 		</style>
 		<script src="pixel-engine.js"></script>
 		<script>
+let pos = [50, 50];
+let bgColor = [ 40, 160, 80 ]
+let playerColor = [ 10, 20, 40 ]
+let a = [70, 70]
+let b = [90, 70]
+let speed = 3;
 class Demo extends Game {
-	bgColor = [ 40, 160, 80 ]
-	pos = [ 50, 50 ]
-	playerColor = [ 10, 20, 40 ]
 	update() {
-		if (this.keyHeld('w')) { this.pos[1] -= 1; }
-		if (this.keyHeld('s')) { this.pos[1] += 1; }
-		if (this.keyHeld('a')) { this.pos[0] -= 1; }
-		if (this.keyHeld('d')) { this.pos[0] += 1; }
-		if (this.keyPressed('b')) {
-			this.bgColor = [ random(100,200), random(100,200), random(100,200) ]
+		if (keyHeld('w')) { pos[Y] -= speed; }
+		if (keyHeld('s')) { pos[Y] += speed; }
+		if (keyHeld('a')) { pos[X] -= speed; }
+		if (keyHeld('d')) { pos[X] += speed; }
+		if (keyPressed('b')) {
+			bgColor = [ random(100,200), random(100,200), random(100,200) ]
 		}
-		if (this.keyReleased('p')) {
-			this.playerColor = [ random(100), random(100), random(100) ]
+		if (keyReleased('p')) {
+			playerColor = [ random(100), random(100), random(100) ]
 		}
-		this.pos = clamp(this.pos, [0,0], [320,240]);
+		const min = [0,0];
+		const max = [this.width-1,this.height-1]
+		pos = clamp(pos, min, max);
 		
-		this.clear(this.bgColor)
-		this.draw(this.pos, this.playerColor);
+		clear(bgColor)
+		drawCircle(pos, 4, playerColor);
+		drawEllipse(pos, 4, 8, playerColor);
+		drawEllipse(pos, 8, 4, playerColor);
+		draw(pos, playerColor);
+		drawLine(a, b, [0,0,0]);
 	}
 }
 

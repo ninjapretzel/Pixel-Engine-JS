@@ -151,11 +151,53 @@ function hsv(h,s,v) {
 	else if (i == 4) { return rgb(t,p,v); }
 	return rgb(v,p,q);
 }
+/** Variable holding primary game for 'static' functions 
+	(so that 'this' can be dropped in more places) */
+let mainGame = undefined;
+
+/** Get whether a key has been pressed this frame 
+	@param {string} key name of key to check
+	@returns {boolean} true if pressed this frame, false otherwise */
+function keyPressed(key) { return mainGame.keyPressed(key); }
+/** Get whether a key has been held this frame 
+	@param {string} key name of key to check
+	@returns {boolean} true if held this frame, false otherwise */
+function keyHeld(key) { return mainGame.keyHeld(key); }
+/** Get whether a key has been released this frame 
+	@param {string} key name of key to check
+	@returns {boolean} true if released this frame, false otherwise */
+function keyReleased(key) { return mainGame.keyReleased(key); }
+/** function to clear the canvas with a given color
+	@param {Color} c color to clear with*/
+function clear(c) { return mainGame.clear(c); }
+/** Draws a single pixel in the given color
+	can be called with either:
+	- `draw(point, color)`
+	- `draw(x, y, color)` */
+function draw(x,y,c) { return mainGame.draw(x,y,c); }
+/** Draws a line between two points, in the given color
+	@param {Point} p1 first point
+	@param {Point} p2 second point
+	@param {Color} c color to draw with */
+function drawLine(p1, p2, c) { return mainGame.drawLine(p1, p2, c); }
+/** Draws a circle centered on the given point, with the given radius, in the given color
+		@param {Point} p point to draw at
+		@param {number} r radius to draw with
+		@param {Color} c color to draw with */
+function drawCircle(p, r, c) { return mainGame.drawCircle(p, r, c); }
+/** Draw an empty ellipse centered at a point
+	@param {Point} p point to draw around
+	@param {number} w width of ellipse
+	@param {number} h height of ellipse
+	@param {Color} c color to draw with */
+function drawEllipse(p, w, h, c) { return mainGame.drawEllipse(p, w, h, c); }
+
 
 /** Primary class for override when creating a PGE game */
 class Game {
 	constructor(canvas, pixelScale = 2, fps = 60) {
 		if (!canvas.getContext) { return; }
+		mainGame = this;
 		this.canvas = canvas;
 		this.ctx = canvas.getContext("2d");
 		pixelate(this.ctx);
@@ -183,22 +225,23 @@ class Game {
 		}, (1000/fps));
 		
 	}
-	/** Get wether a key has been pressed this frame 
-	 * @param {string} key name of key to check
-	 * @returns {boolean} true if pressed this frame, false otherwise */
+	/** Get whether a key has been pressed this frame 
+		@param {string} key name of key to check
+		@returns {boolean} true if pressed this frame, false otherwise */
 	keyPressed(key) { return this.keys[key] && !this.lastKeys[key]; }
-	/** Get wether a key has been held this frame 
-	 * @param {string} key name of key to check
-	 * @returns {boolean} true if held this frame, false otherwise */
+	/** Get whether a key has been held this frame 
+		@param {string} key name of key to check
+		@returns {boolean} true if held this frame, false otherwise */
 	keyHeld(key) { return this.keys[key]; }
-	/** Get wether a key has been released this frame 
-	 * @param {string} key name of key to check
-	 * @returns {boolean} true if released this frame, false otherwise */
+	/** Get whether a key has been released this frame 
+		@param {string} key name of key to check
+		@returns {boolean} true if released this frame, false otherwise */
 	keyReleased(key) { return !this.keys[key] && this.lastKeys[key]; }
 	
 	/** internal function to run updates with event handling logic */
 	tick() {
-		console.log("tick");
+		// console.log("tick");
+		mainGame = this;
 		this.update();
 		this.lastKeys = this.keys;
 		this.keys = {...this.lastKeys};
@@ -207,7 +250,7 @@ class Game {
 	update() {}
 	
 	/** function to clear the canvas with a given color
-	 * @param {Color} color to clear with*/
+		@param {Color} c color to clear with*/
 	clear(c) {
 		// for (let y = 0; y < this.canvas.height; y++) {
 		// 	for (let x = 0; x < this.canvas.width; x++) {
@@ -223,10 +266,10 @@ class Game {
 	}
 	
 	/** Draws a single pixel in the given color
-	 * can be called with either:
-	 * draw(point, color)
-	 * - or -
-	 * draw(x, y, color) */
+		can be called with either:
+		draw(point, color)
+		- or -
+		draw(x, y, color) */
 	draw(x, y, c) {
 		if (!c) { this.draw(x[0], x[1], y); return; }
 		this.ctx.fillStyle = style(c);
@@ -235,9 +278,9 @@ class Game {
 	}
 	
 	/** Draws a line between two points, in the given color
-	 * @param {Point} p1 first point
-	 * @param {Point} p2 second point
-	 * @param {Color} c color to draw with */
+		@param {Point} p1 first point
+		@param {Point} p2 second point
+		@param {Color} c color to draw with */
 	drawLine(p1,p2,c) {
 		let x, y, xe, ye, i;
 		const dx = p2[0] - p1[0]; 
@@ -282,9 +325,9 @@ class Game {
 	}
 	
 	/** Draws a circle centered on the given point, with the given radius, in the given color
-	 * @param {Point} p point to draw at
-	 * @param {number} r radius to draw with
-	 * @param {Color} c color to draw with */
+		@param {Point} p point to draw at
+		@param {number} r radius to draw with
+		@param {Color} c color to draw with */
 	drawCircle(p, r, c) {
 		let x0 = 0;
 		let y0 = r;
@@ -304,6 +347,41 @@ class Game {
 			
 			if (d < 0) { d += 4 * x0 + 6; x0++}
 			else { d += 4 * (x0 - y0) + 10; x0++; y0--; }
+		}
+	}
+	
+	/** Draw an empty ellipse centered at a point
+		@param {Point} p point to draw around
+		@param {number} w width of ellipse
+		@param {number} h height of ellipse
+		@param {Color} c color to draw with */
+	drawEllipse(p, w, h, c) {
+		if (w == 0 || h == 0) { return; }
+		let a2 = w*w;
+		let b2 = h*h;
+		let fa2 = 4 * a2;
+		let fb2 = 4 * b2;
+		let sigma = 2 * b2 + a2 * (1 - 2 * h);
+		let x,y;
+		x = 0; y = h;
+		for (; b2 * x <= a2 * y; x ++) {
+			this.draw(p[X] + x, p[Y] + y, c);
+			this.draw(p[X] - x, p[Y] + y, c);
+			this.draw(p[X] + x, p[Y] - y, c);
+			this.draw(p[X] - x, p[Y] - y, c);
+			if (sigma >= 0) { sigma += fa2 * (1 - y); y--; }
+			sigma += b2 * ((4 * x) + 6);
+		}
+		
+		sigma = 2 * a2 + b2 * (1 - 2 * w);
+		x = w; y = 0;
+		for (; a2 * y < b2 * x; y++) {
+			this.draw(p[X] + x, p[Y] + y, c);
+			this.draw(p[X] - x, p[Y] + y, c);
+			this.draw(p[X] + x, p[Y] - y, c);
+			this.draw(p[X] - x, p[Y] - y, c);
+			if (sigma >= 0) { sigma += fb2 * (1 - x); x-- }
+			sigma += a2 * ((4 * y) + 6);
 		}
 	}
 	
