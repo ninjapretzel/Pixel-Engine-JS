@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>pixel-engine.js test</title>
+		<style>
+div { width:auto;text-align:center;margin: 0 auto;border-style: dotted; }
+		</style>
+		<script src="pixel-engine.js"></script>
+		<script>
+window.onload = ()=>{
+	const canvas = document.getElementById("main");
+	const game = new Game(canvas);
+	
+	for (let i = 0; i <= 240; i++) {
+		game.draw(i,i, [0,0,0]);
+		game.draw([i,240-i], [0,0,0]);
+	}
+	
+	game.line([20, 20], [80, 80], RED);
+	
+	for (let i = 0; i < 30; i++) {
+		const x1 = random(320);
+		const y1 = random(240);
+		const x2 = random(320);
+		const y2 = random(240);
+		const r = random(255);
+		const g = random(255);
+		const b = random(255);
+		game.line([x1,y1], [x2,y2], [r,g,b]);
+	}
+		
+}
+		</script>
+	</head>
+	<body>
+		<div class="center">
+			<canvas id="main" width="640" height="480">
+				Canvas not supported in your browser. Please use a modern browser.
+			</canvas>
+		</div>
+	</body>
+</html>
