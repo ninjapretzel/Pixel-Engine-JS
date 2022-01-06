@@ -24,6 +24,9 @@ function pixelate(context){
 /** @typedef {[Number, Number]} Point Points are specifically an array of [X,Y] */
 /** constant for position of X-coord in vectors */ const X = 0;
 /** constant for position of Y-coord in vectors */ const Y = 1;
+/** @typedef {[number, number, number, number]} Rect rectangle in [X,Y,W,H] form */
+/** constant for position of width in rectangle  */ const W = 2;
+/** constant for position of height in rectangle */ const H = 3;
 
 /** TAU > PI. Specifically, TAU = 2 * PI */
 const TAU = 2 * Math.PI;
@@ -111,9 +114,7 @@ function abs(v) {
  * @param {number} a First endpoint (required)
  * @param {number} b Second endpoint (defaults to zero)
  * @returns {number} integer in range [a, b) or [0, a)*/
-function random(a,b=0) {
-	return Math.floor(a + (b-a) * Math.random());
-}
+function random(a,b=0) { return Math.floor(a + (b-a) * Math.random()); }
 /** Helper function that returns the style for a given color
  * @param {Color|number} r Either a packed {Color} or just the red component
  * @param {?number} g green component
@@ -151,6 +152,21 @@ function hsv(h,s,v) {
 	else if (i == 4) { return rgb(t,p,v); }
 	return rgb(v,p,q);
 }
+/** Helper function to see if a rectangle contains a point 
+	@param {Rect} rect rectangle to check 
+	@param {Point} point point to check */
+function contains(rect, point) {
+	let x1 = rect[X];
+	let y1 = rect[Y];
+	let x2 = rect[X] + rect[W];
+	let y2 = rect[Y] + rect[H];
+	if (x1 > x2) { const t = x1; x1 = x2; x2 = t; }
+	if (y1 > y2) { const t = y1; y1 = y2; y2 = t; }
+	const x = point[X];
+	const y = point[Y];
+	return (x >= x1 && x <= x2 && y >= y1 && y <= y2);
+}
+
 /** Variable holding primary game for 'static' functions 
 	(so that 'this' can be dropped in more places) */
 let mainGame = undefined;
@@ -184,6 +200,10 @@ function mouseHeld(button) { return mainGame.mouseHeld(button); }
 	@param {string} button name of button to check
 	@returns {boolean} true if released this frame, false otherwise */
 function mouseReleased(button) { return mainGame.mouseReleased(button); }
+/** Get the mouse position as a Point
+	@returns {Point} array containing [mouseX,mouseY] */
+function mousePos() { return mainGame.mousePos(); }
+
 
 /** function to clear the canvas with a given color
 	@param {Color} c color to clear with*/
@@ -255,7 +275,15 @@ class Game {
 		canvas.addEventListener("keyup", (e) => { delete this.keys[e.key]; });
 		canvas.addEventListener("mousedown", (e) => { this.mouse[e.button] = true; });
 		canvas.addEventListener("mouseup", (e) => { delete this.mouse[e.button]; });
-		
+		const rect = this.rect = canvas.getBoundingClientRect();
+		this.rawMouseX = rect.left;
+		this.rawMouseY = rect.top;
+		canvas.addEventListener("mousemove", (e) => {
+			const cx = this.rawMouseX = e.clientX;
+			const cy = this.rawMouseY = e.clientY;
+			this.mouseX = Math.floor((cx - this.rect.left)/this.pixelScale);
+			this.mouseY = Math.floor((cy - this.rect.top)/this.pixelScale);
+		});
 		this.clear([40,80,160]);
 		this.refresh = setInterval( ()=>{
 			this.tick();
@@ -287,6 +315,9 @@ class Game {
 		@param {string} button name of button to check
 		@returns {boolean} true if released this frame, false otherwise */
 	mouseReleased(button) { return !this.mouse[button] && this.lastMouse[button]; }
+	/** Get the mouse position as a Point
+		@returns {Point} array containing [mouseX,mouseY] */
+	mousePos() { return [ this.mouseX, this.mouseY ]; }
 	
 	/** internal function to run updates with event handling logic */
 	tick() {
@@ -503,10 +534,15 @@ class Game {
 	}
 	
 	/** Draws an empty rectangle in the given color. Can be called with either:
+		- `drawRect(rect, color)` where `rect` is a {Rect}
 		- `drawRect(p, w, h, color)` where `p` is the top left, and `w`/`h` are width and height
 		- `drawRect(p1, p2, color)` where `p1` and `p2` are bounding rectangles*/
 	drawRect(p, w, h, c) {
-		if (!c) {
+		if (!h) {
+			c = w;
+			w = p[W];
+			h = p[H];
+		} else if (!c) {
 			let p2 = w;
 			c = h;
 			if (p[X] > p2[X]) { const t = p[X]; p[X] = p2[X]; p2[X] = t; }
@@ -524,10 +560,15 @@ class Game {
 	}
 	
 	/** Draws a filled rectangle in the given color. Can be called with either:
+		- `drawRect(rect, color)` where `rect` is a {Rect}
 		- `drawRect(p, w, h, color)` where `p` is the top left, and `w`/`h` are width and height
 		- `drawRect(p1, p2, color)` where `p1` and `p2` are bounding rectangles*/
 	fillRect(p, w, h, c) {
-		if (!c) { 
+		if (!h) {
+			c = w;
+			w = p[W];
+			h = p[H];
+		} else if (!c) { 
 			let p2 = w;
 			c = h;
 			if (p[X] > p2[X]) { const t = p[X]; p[X] = p2[X]; p2[X] = t; }
