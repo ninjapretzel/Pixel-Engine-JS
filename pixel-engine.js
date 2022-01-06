@@ -304,15 +304,6 @@ class Game {
 	/** function to clear the canvas with a given color
 		@param {Color} c color to clear with*/
 	clear(c) {
-		// for (let y = 0; y < this.canvas.height; y++) {
-		// 	for (let x = 0; x < this.canvas.width; x++) {
-		// 		const i = (y * this.canvas.width + x) * 4;
-		// 		this.buffer.data[i + 0] = c[0];
-		// 		this.buffer.data[i + 1] = c[1];
-		// 		this.buffer.data[i + 2] = c[2];
-		// 		this.buffer.data[i + 3] = 255;
-		// 	}
-		// }
 		this.ctx.fillStyle = style(c);
 		this.ctx.fillRect(0,0,this.canvas.width, this.canvas.height);
 	}
