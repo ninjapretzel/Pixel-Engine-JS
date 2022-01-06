@@ -10,10 +10,35 @@ div { width:auto;text-align:center;margin: 0 auto;border-style: dotted; }
 		</style>
 		<script src="pixel-engine.js"></script>
 		<script>
+class Demo extends Game {
+	bgColor = [ 40, 160, 80 ]
+	pos = [ 50, 50 ]
+	playerColor = [ 10, 20, 40 ]
+	update() {
+		if (this.keyHeld('w')) { this.pos[1] -= 1; }
+		if (this.keyHeld('s')) { this.pos[1] += 1; }
+		if (this.keyHeld('a')) { this.pos[0] -= 1; }
+		if (this.keyHeld('d')) { this.pos[0] += 1; }
+		if (this.keyPressed('b')) {
+			this.bgColor = [ random(100,200), random(100,200), random(100,200) ]
+		}
+		if (this.keyReleased('p')) {
+			this.playerColor = [ random(100), random(100), random(100) ]
+		}
+		this.pos = clamp(this.pos, [0,0], [320,240]);
+		
+		this.clear(this.bgColor)
+		this.draw(this.pos, this.playerColor);
+	}
+}
+
 window.onload = ()=>{
 	const canvas = document.getElementById("main");
-	const game = new Game(canvas);
+	const game = new Demo(canvas);
 	
+}
+
+function linesDemo(game) {
 	for (let i = 0; i <= 240; i++) {
 		game.draw(i,i, [0,0,0]);
 		game.draw([i,240-i], [0,0,0]);
@@ -31,13 +56,12 @@ window.onload = ()=>{
 		const b = random(255);
 		game.line([x1,y1], [x2,y2], [r,g,b]);
 	}
-		
 }
 		</script>
 	</head>
 	<body>
 		<div class="center">
-			<canvas id="main" width="640" height="480">
+			<canvas id="main" width="640" height="480" tabindex="123">
 				Canvas not supported in your browser. Please use a modern browser.
 			</canvas>
 		</div>

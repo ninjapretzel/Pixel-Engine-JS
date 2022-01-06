@@ -10,7 +10,16 @@ function pixelate(context){
 }
 const TAU = 2 * Math.PI;
 function floor(v) { return Math.floor(v); }
-function clamp(v,min=0,max=1) { return (v < min) ? min : ((v > max) ? max : v); }
+function clamp(v,min=0,max=1) { 
+	if (Array.isArray(v)) {
+		const result = [];
+		for (let i = 0; i < v.length; i++) {
+			result[i] = clamp(v[i], min[i], max[i]);
+		}
+		return result;
+	}
+	return (v < min) ? min : ((v > max) ? max : v); 
+}
 function frac(v) { return v-Math.floor(v); }
 function abs(v) { return v < 0 ? -v : v; }
 function fmod(a,b) { 
@@ -52,6 +61,8 @@ const BLUE = [0,0,255];
 const CYAN = [0,255,255];
 const MAGENTA = [255,0,255];
 const YELLOW = [255,255,0];
+const X = 0;
+const Y = 1;
 
 class Game {
 	constructor(canvas, pixelScale = 2, fps = 60) {
@@ -65,15 +76,35 @@ class Game {
 		this.height = canvas.height / pixelScale;
 		console.log("Initialized game", this.width, "x", this.height, "@",pixelScale,"px");
 		this.buffer = this.ctx.createImageData(this.canvas.width, this.canvas.height);
+		this.keys = {}
+		this.lastKeys = {}
+		canvas.addEventListener("keydown", (e) => {
+			if (this.keys[e.key]) { return; }
+			this.keys[e.key] = true;
+			// console.log("keydown", e);
+		});
+		canvas.addEventListener("keyup", (e) => {
+			delete this.keys[e.key];
+			// console.log("keyup", e);
+		});
 		
 		this.clear([40,80,160]);
 		this.refresh = setInterval( ()=>{
-			this.update();
-			console.log("tick");
+			this.tick();
 		}, (1000/fps));
 		
 	}
 	
+	keyPressed(key) { return this.keys[key] && !this.lastKeys[key]; }
+	keyHeld(key) { return this.keys[key]; }
+	keyReleased(key) { return !this.keys[key] && this.lastKeys[key]; }
+	
+	tick() {
+		console.log("tick");
+		this.update();
+		this.lastKeys = this.keys;
+		this.keys = {...this.lastKeys};
+	}
 	update() {}
 	
 	clear(c) {
