@@ -9,10 +9,11 @@ function pixelate(context){
 	context['msImageSmoothingEnabled'] = false;     /* IE */
 }
 
-/** @typedef {[Number, Number, Number]} Color Colors are specifically an array of [R,G,B] */
+/** @typedef {[Number, Number, Number, Number?]} Color Colors are specifically an array of [R,G,B,A?] */
 /** constant for position of Red component in vector colors */   const R = 0;
 /** constant for position of Green component in vector colors */ const G = 1;
 /** constant for position of Blue component in vector colors */  const B = 2;
+/** constant for position of Alpha component in vector colors */  const A = 3;
 /** Constant for white */   const WHITE = [255,255,255];
 /** Constant for black */   const BLACK = [0,0,0];
 /** Constant for red */     const RED = [255,0,0];
@@ -21,12 +22,90 @@ function pixelate(context){
 /** Constant for cyan */    const CYAN = [0,255,255];
 /** Constant for magenta */ const MAGENTA = [255,0,255];
 /** Constant for yellow */  const YELLOW = [255,255,0];
+/** Constant for transparent */ const TRANSPARENT = [0,0,0,0];
 /** @typedef {[Number, Number]} Point Points are specifically an array of [X,Y] */
 /** constant for position of X-coord in vectors */ const X = 0;
 /** constant for position of Y-coord in vectors */ const Y = 1;
 /** @typedef {[number, number, number, number]} Rect rectangle in [X,Y,W,H] form */
 /** constant for position of width in rectangle  */ const W = 2;
 /** constant for position of height in rectangle */ const H = 3;
+
+/** Class for representing sprite data */
+class Sprite {
+	/** sets up a new w x h sprite with _the same_ transparent Color in every spot */
+	constructor(w, h) {
+		this.width = w;
+		this.height = h;
+		this.pixels = [];
+		const transparent = [0,0,0,0];
+		for (let i = 0; i < w*h; i++) {
+			pixels[i] = transparent;
+		}
+	}
+	static fromPNG(pngdata) {
+		
+	}
+	/** Gets the size of this sprite as a Point */
+	get size() { return [this.w,this.h]; }
+	/** Gets the number of pixels in this sprite */
+	get length() { return this.w * this.h; }
+	/** Gets the color at position (x,y) */
+	pixel(x, y) {
+		const i = x + y * w;
+		if (i < 0 || i >= this.length) {
+			throw new Error(`Pixel at ${x},${y} is out of bounds for size ${this.length}`);
+		}
+		return this.pixels[i]; 
+	}
+	/** sets the color at (x,y) to be color c */
+	setPixel(x, y, c) {
+		const i = x + y * w;
+		if (i < 0 || i >= this.length) {
+			throw new Error(`Pixel at ${x},${y} is out of bounds for size ${this.length}`);
+		}
+		this.pixels[i] = c;
+	}
+}
+
+/** Class for representing 'paletted' sprite data */
+class PalettedSprite {
+	/** sets up a new w x h sprite with the given palette */
+	constructor(w, h, palette, data = null) {
+		this.width = w;
+		this.height = h;
+		if (data) {
+			if (data.length != w*h) { throw new Error("PaletteSprite data must be w*h in length!"); }
+			this.data = data;
+		} else {
+			this.data = []
+			for (let i = 0; i < this.length; i++) { this.data[i] = 0; }
+		}
+		this.palette = palette;
+	}
+	/** Gets the size of this sprite as a Point */
+	get size() { return [this.w,this.h]; }
+	/** Gets the number of pixels in this sprite */
+	get length() { return this.w * this.h; }
+	/** Gets the color at position (x,y) */
+	pixel(x, y) {
+		const i = x + y * this.width;
+		if (i < 0 || i >= this.length) {
+			throw new Error(`Pixel at ${x},${y} is out of bounds for size ${this.length}`);
+		}
+		const b = this.data[i];
+		if (!b) { return TRANSPARENT; }
+		return this.palette[b];
+	}
+	/** Sets the pixel at (x,y) to use color index ci */
+	setIndex(x, y, ci) {
+		const i = x + y * this.width;
+		if (i < 0 || i >= this.length) {
+			throw new Error(`Pixel at ${x},${y} is out of bounds for size ${this.length}`);
+		}
+		this.data[i] = (Math.floor(ci) % 255);
+	}
+	
+}
 
 /** TAU > PI. Specifically, TAU = 2 * PI */
 const TAU = 2 * Math.PI;
@@ -119,38 +198,42 @@ function random(a,b=0) { return Math.floor(a + (b-a) * Math.random()); }
  * @param {Color|number} r Either a packed {Color} or just the red component
  * @param {?number} g green component
  * @param {?number} b blue component */
-function style(r,g,b) { 
-	if (Array.isArray(r)) { b = r[2]; g = r[1]; r = r[0]; }
+function style(r,g,b,a=1.0) { 
+	if (Array.isArray(r)) { 
+		a = (r[3]==undefined ? 1.0 : r[3]);
+		b = r[2]; g = r[1]; r = r[0]; 
+	}
+	if (a > 1.0) { a /= 255; }
 	r = floor(r); g = floor(g); b = floor(b);
-	return `rgb(${r},${g},${b})`; 
+	return `rgba(${r},${g},${b},${a})`; 
 }
 /** Helper function to get a style from floating-point RGB colors [0,1] 
  * @param {number} r RED component in [0, 1]
  * @param {number} g GRN component in [0, 1]
  * @param {number} b BLU component in [0, 1]
  * @returns {string} style representing RGB color */
-function rgb(r,g,b) { return style(r*255,g*255,b*255); }
+function rgb(r,g,b,a=1.0) { return style(r*255,g*255,b*255,a); }
 /** Helper function to get a style from floating-point HSV colors [0,1]
  * @param {number} h HUE component in [0, 1]
  * @param {number} s SAT component in [0, 1]
  * @param {number} v VAL component in [0, 1]
  * @returns {string} style representing HSV color */
-function hsv(h,s,v) {
+function hsv(h,s,v,a=1.0) {
 	h = fmod(h, 1.0);
 	if (h < 0) { h += 1.0; }
-	if (s == 0) { return rgb(v,v,v); }
+	if (s == 0) { return rgb(v,v,v,a); }
 	h *= 6.0;
 	const i = Math.floor(h);
 	const f = h - i;
 	const p = v * (1.0-s);
 	const q = v * (1.0-s*f);
 	const t = v * (1.0 - s * (1.0-f));
-	if (i == 0) { return rgb(v,t,p); }
-	else if (i == 1) { return rgb(q,v,p); }
-	else if (i == 2) { return rgb(p,v,t); }
-	else if (i == 3) { return rgb(p,q,v); }
-	else if (i == 4) { return rgb(t,p,v); }
-	return rgb(v,p,q);
+	if (i == 0) { return rgb(v,t,p,a); }
+	else if (i == 1) { return rgb(q,v,p,a); }
+	else if (i == 2) { return rgb(p,v,t,a); }
+	else if (i == 3) { return rgb(p,q,v,a); }
+	else if (i == 4) { return rgb(t,p,v,a); }
+	return rgb(v,p,q,a);
 }
 /** Helper function to see if a rectangle contains a point 
 	@param {Rect} rect rectangle to check 
@@ -247,6 +330,10 @@ function drawRect(p, w, h, c) { return mainGame.drawRect(p, w, h, c); }
 	- `drawRect(p, w, h, color)` where `p` is the top left, and `w`/`h` are width and height
 	- `drawRect(p1, p2, color)` where `p1` and `p2` are bounding rectangles*/
 function fillRect(p, w, h, c) { return mainGame.fillRect(p, w, h, c); }
+/** Draws the given sprite at the given point 
+	@param {Point} p point to draw at
+	@param {Sprite} spr sprite to draw */
+function drawSprite(p, spr) { return mainGame.drawSprite(p, spr); }
 
 /** Primary class for override when creating a PGE game */
 class Game {
@@ -589,6 +676,18 @@ class Game {
 		}
 	}
 	
+	/** Draws the given sprite at the given point 
+		@param {Point} p point to draw at
+		@param {Sprite} spr sprite to draw */
+	drawSprite(p, spr) {
+		if (!spr) { return; }
+		
+		for (let y = 0; y < spr.height; y++) {
+			for (let x = 0; x < spr.width; x++) {
+				this.draw(p[X]+x, p[Y]+y, spr.pixel(x,y));
+			}
+		}
+	}
 	
 	
 	
