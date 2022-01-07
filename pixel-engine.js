@@ -358,6 +358,11 @@ function fillRect(p, w, h, c) { return mainGame.fillRect(p, w, h, c); }
 	@param {Point} p point to draw at
 	@param {Sprite} spr sprite to draw */
 function drawSprite(p, spr) { return mainGame.drawSprite(p, spr); }
+/** Draws a partial rectangle of the sprite at the given point 
+	@param {Point} p point to draw at
+	@param {Sprite} spr sprite to draw
+	@param {Rect} rect region of sprite to draw */
+function drawPartialSprite(p, spr, rect) { return mainGame.drawSprite(p, spr, rect); }
 
 /** Primary class for override when creating a PGE game */
 class Game {
@@ -705,16 +710,46 @@ class Game {
 		@param {Sprite} spr sprite to draw */
 	drawSprite(p, spr) {
 		if (!spr) { return; }
+		const sw = spr.width;
+		const sh = spr.height;
+		const px = p[X];
+		const py = p[Y];
 		
-		for (let y = 0; y < spr.height; y++) {
-			for (let x = 0; x < spr.width; x++) {
+		for (let y = 0; y < sh; y++) {
+			for (let x = 0; x < sw; x++) {
 				const pixel =  spr.pixel(x,y);
 				if (pixel[3] < .01) { continue; } // Skip nearly/transparent pixels
-				this.draw(p[X]+x, p[Y]+y, pixel);
+				this.draw(px+x, py+y, pixel);
 			}
 		}
 	}
 	
+	/** Draws a partial rectangle of the sprite at the given point 
+		@param {Point} p point to draw at
+		@param {Sprite} spr sprite to draw
+		@param {Rect} rect region of sprite to draw */
+	drawPartialSprite(p, spr, rect) {
+		if (!spr) { return; }
+		const ox = rect[X];
+		const oy = rect[Y];
+		const w = rect[W];
+		const h = rect[H];
+		const sw = spr.width;
+		const sh = spr.height;
+		const px = p[X];
+		const py = p[Y];
+		
+		for (let y = 0; y < h; y++) {
+			if (y+oy < 0 || y+oy >= sh) { continue; }
+			for (let x = 0; x < w; x++) {
+				if (x+ox < 0 || x+ox >= sw) { continue; }
+				
+				const pixel = spr.pixel(ox+x, oy+y);
+				if (pixel[3] < .01) {continue; }
+				this.draw(px+x, py+y, pixel);
+			}
+		}
+	}
 	
 	
 	
