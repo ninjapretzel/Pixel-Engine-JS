@@ -5,9 +5,10 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>pixel-engine.js test</title>
-		<style>
-div { width:auto;text-align:center;margin: 0 auto;border-style: dotted; }
-		</style>
+		<style> div { width:auto;text-align:center;margin: 0 auto;border-style: dotted; } </style>
+		<!-- To support PNG loading: -->
+		<script src="UPNG.js"></script>
+		<!-- Actual engine: -->
 		<script src="pixel-engine.js"></script>
 	</head>
 	<body>
@@ -18,156 +19,9 @@ div { width:auto;text-align:center;margin: 0 auto;border-style: dotted; }
 		</div>
 	</body>
 	<script>
-let pos = [50, 50];
-let bgColor = [ 20, 80, 40 ]
-let playerColor = [ 10, 20, 40 ]
-let a = [70, 70]
-let b = [90, 70]
-let speed = 2;
-let thingCol1 = [ 177, 222, 133 ]
-let thingCol2 = [ 155, 255, 166 ]
-let things = [
-	[ 11, 12 ],
-	[ 33, 66 ],
-	[ 140, 80],
-]
-function randomBits(chance=.5) {
-	const bits = []
-	for (let i = 0; i < 64; i++) { bits[i] = Math.random() < chance ? 1 : 0; }
-	return bits;
-}
-function and(bits, mask) {
-	const result = [];
-	for (let i = 0; i < 64; i++) {
-		result[i] = bits[i] && mask[i];
-	}
-	return result;
-}
-function or(bits, mask) {
-	const result = [];
-	for (let i = 0; i < 64; i++) {
-		result[i] = bits[i] || mask[i];
-	}
-	return result;
-}
-function xor(bits, mask) {
-	const result = [];
-	for (let i = 0; i < 64; i++) {
-		result[i] = !!(bits[i] ^ mask[i]);
-	}
-	return result;
-}
-function countBits(bits) { 
-	let cnt = 0;
-	for (let i = 0; i < 64; i++) { cnt += (bits[i] ? 1 : 0); }
-	return cnt;
-}
-
-function splatBits(mask, minBits) {
-	if (minBits >= countBits(mask)) { return randomBits(); }
-	let bits = randomBits();
-	while (countBits(bits) < minBits) {
-		bits = randomBits();
-	}
-	return bits;
-}
-function renderInvader(spr, bits, index) {
-	const w = spr.width;
-	const h = spr.height;
-	const oddW = w % 2 === 1;
-	const wBits = (oddW ? 1 : 0) + w / 2;
-	for (let yy = 0; yy < h; yy++) {
-		for (let xx = 0; xx < w; xx++) {
-			let i = yy * w + xx;
-			if (i >= 64) { return; }
-			
-			if (bits[i]) {
-				spr.setIndex(xx,yy, index);
-				spr.setIndex(w-1-xx, yy, index); // Mirroring
-			}
-		}
-	}
-}
-
-function makeInvader(w, h, colors) {
-	const spr = new PalettedSprite(w,h,colors);
-	for (let i = 1; i < colors.length; i++) {
-		const bits = randomBits(.2);
-		renderInvader(spr, bits, i);
-	}
-	return spr;
-}
-const invader = makeInvader(7,7, [0, BLUE, CYAN]);
-
-let rectA = [ 30, 30, 10, 10];
-class Demo extends Game {
-	update() {
-		if (keyHeld('w')) { pos[Y] -= speed; }
-		if (keyHeld('s')) { pos[Y] += speed; }
-		if (keyHeld('a')) { pos[X] -= speed; }
-		if (keyHeld('d')) { pos[X] += speed; }
-		if (keyPressed('b') || mousePressed(LEFT_MOUSE)) {
-			bgColor = [ random(33,111), random(33,111), random(33,111) ]
-		}
-		if (keyReleased('p') || mousePressed(RIGHT_MOUSE)) {
-			playerColor = [ random(155), random(155), random(155) ]
-		}
-		const min = [0,0];
-		const max = [this.width-1,this.height-1]
-		pos = clamp(pos, min, max);
-		
-		
-		clear(bgColor)
-		for (let thing of things) { 
-			fillEllipse(thing, 10, 6, thingCol2);
-			fillCircle(thing, 4, thingCol1);
-		}
-		drawRect([80, 80], [100, this.height-1], RED);
-		drawRect([40, 80], 10, 20, BLUE);
-		
-		fillRect([20,20], [30, 30], GREEN);
-		fillRect([120,20], 10, 20, GREEN);
-		
-		if (contains(rectA, mousePos())) {
-			fillRect(rectA, [0, 255, 0, 128]);
-			drawRect(rectA, [255, 0, 255, .5]);
-		} else {
-			fillRect(rectA, BLUE);
-			drawRect(rectA, RED);
-		}
-		drawCircle(pos, 4, playerColor);
-		drawEllipse(pos, 4, 8, playerColor);
-		drawEllipse(pos, 8, 4, playerColor);
-		draw(pos, playerColor);
-		drawLine(a, b, [0,0,0]);
-		
-		drawSprite([100, 20], invader); 
-	}
-}
-	
 const canvas = document.getElementById("main");
-const game = new Demo(canvas, 4);
+const game = new Game(canvas, 4);
 
 
-
-function linesDemo(game) {
-	for (let i = 0; i <= 240; i++) {
-		game.draw(i,i, [0,0,0]);
-		game.draw([i,240-i], [0,0,0]);
-	}
-	
-	game.line([20, 20], [80, 80], RED);
-	
-	for (let i = 0; i < 30; i++) {
-		const x1 = random(320);
-		const y1 = random(240);
-		const x2 = random(320);
-		const y2 = random(240);
-		const r = random(255);
-		const g = random(255);
-		const b = random(255);
-		game.drawLine([x1,y1], [x2,y2], [r,g,b]);
-	}
-}
 	</script>
 </html>
