@@ -39,11 +39,8 @@ class Sprite {
 		this.pixels = [];
 		const transparent = [0,0,0,0];
 		for (let i = 0; i < w*h; i++) {
-			pixels[i] = transparent;
+			this.pixels[i] = transparent;
 		}
-	}
-	static fromPNG(pngdata) {
-		
 	}
 	/** Gets the size of this sprite as a Point */
 	get size() { return [this.w,this.h]; }
@@ -51,7 +48,7 @@ class Sprite {
 	get length() { return this.w * this.h; }
 	/** Gets the color at position (x,y) */
 	pixel(x, y) {
-		const i = x + y * w;
+		const i = x + y * this.width;
 		if (i < 0 || i >= this.length) {
 			throw new Error(`Pixel at ${x},${y} is out of bounds for size ${this.length}`);
 		}
@@ -59,7 +56,7 @@ class Sprite {
 	}
 	/** sets the color at (x,y) to be color c */
 	setPixel(x, y, c) {
-		const i = x + y * w;
+		const i = x + y * this.width;
 		if (i < 0 || i >= this.length) {
 			throw new Error(`Pixel at ${x},${y} is out of bounds for size ${this.length}`);
 		}
@@ -105,6 +102,33 @@ class PalettedSprite {
 		this.data[i] = (Math.floor(ci) % 255);
 	}
 	
+}
+async function loadPNG(url) {
+	if (!UPNG) { 
+		throw new Error("You must include UPNG.js to support loading PNG files!");
+	}
+	const resp = await fetch(url);
+	const buffer = await resp.arrayBuffer();
+	const img = UPNG.decode(buffer);
+	const rgba = UPNG.toRGBA8(img)[0];
+	const bytes = new Uint8Array(rgba);
+	
+	const w = img.width;
+	const h = img.height;
+	const spr = new Sprite(w, h);
+	// console.log(rgba.isView())
+	for (let y = 0; y < h; y++) {
+		for (let x = 0; x < w; x++) {
+			const i = (y * w + x) * 4;
+			const r = bytes[i+0];
+			const g = bytes[i+1];
+			const b = bytes[i+2];
+			const a = bytes[i+3];
+			const pix = [r,g,b,a];
+			spr.setPixel(x, y, pix);
+		}
+	}
+	return spr;
 }
 
 /** TAU > PI. Specifically, TAU = 2 * PI */
@@ -684,10 +708,13 @@ class Game {
 		
 		for (let y = 0; y < spr.height; y++) {
 			for (let x = 0; x < spr.width; x++) {
-				this.draw(p[X]+x, p[Y]+y, spr.pixel(x,y));
+				const pixel =  spr.pixel(x,y);
+				if (pixel[3] < .01) { continue; } // Skip nearly/transparent pixels
+				this.draw(p[X]+x, p[Y]+y, pixel);
 			}
 		}
 	}
+	
 	
 	
 	
