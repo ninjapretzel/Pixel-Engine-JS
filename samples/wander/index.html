@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>pixel-engine.js test</title>
+		<style> div { width:auto;text-align:center;margin: 0 auto;border-style: dotted; } </style>
+		<!-- To support PNG loading: -->
+		<script src="../../UPNG.js"></script>
+		<!-- Actual engine: -->
+		<script src="../../pixel-engine.js"></script>
+	</head>
+	<body>
+		<div class="center">
+			<canvas id="main" width="640" height="480" tabindex="123">
+				Canvas not supported in your browser. Please use a modern browser.
+			</canvas>
+		</div>
+	</body>
+	<script>
+let pos = [50, 50];
+let bgColor = [ 20, 80, 40 ]
+let playerColor1 = [ 10, 20, 40 ]
+let playerColor2 = [ 20, 40, 80 ]
+let speed = 2;
+let thingCol1 = [ 177, 222, 133 ]
+let thingCol2 = [ 155, 255, 166 ]
+let things = [ ]
+for (let i = 0; i < 10; i++) {
+	things[i] = [ random(160), random(120) ];
+}
+let rectA = [ 30, 30, 10, 10];
+class Demo extends Game {
+	update() {
+		if (keyHeld('w')) { pos[Y] -= speed; }
+		if (keyHeld('s')) { pos[Y] += speed; }
+		if (keyHeld('a')) { pos[X] -= speed; }
+		if (keyHeld('d')) { pos[X] += speed; }
+		if (keyPressed('b') || mousePressed(LEFT_MOUSE)) {
+			bgColor = [ random(33,111), random(33,111), random(33,111) ]
+		}
+		if (keyReleased('p') || mousePressed(RIGHT_MOUSE)) {
+			playerColor1 = [ random(99), random(99), random(99) ]
+			playerColor2 = [ random(99,155), random(99,155), random(99,155) ]
+		}
+		const min = [0,0];
+		const max = [this.width-1,this.height-1]
+		pos = clamp(pos, min, max);
+		
+		
+		clear(bgColor)
+		for (let thing of things) { 
+			fillEllipse(thing, 10, 6, thingCol2);
+			fillCircle(thing, 4, thingCol1);
+			drawEllipse(thing, 10, 6, thingCol1);
+		}
+		
+		if (contains(rectA, mousePos())) {
+			fillRect(rectA, [0, 255, 0]);
+			drawRect(rectA, [255, 0, 255]);
+		} else {
+			fillRect(rectA, BLUE);
+			drawRect(rectA, RED);
+		}
+		
+		fillEllipse(pos, 4, 8, playerColor1);
+		fillEllipse(pos, 8, 4, playerColor1);
+		fillCircle(pos, 6, playerColor1);
+		drawEllipse(pos, 4, 8, playerColor2);
+		drawEllipse(pos, 8, 4, playerColor2);
+		draw(pos, playerColor2);
+		
+	}
+}
+	
+const canvas = document.getElementById("main");
+const game = new Demo(canvas, 4);
+
+
+	</script>
+</html>
