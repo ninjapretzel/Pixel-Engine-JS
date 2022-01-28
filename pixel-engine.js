@@ -452,9 +452,9 @@ class Game {
 	tick() {
 		// console.log("tick");
 		mainGame = this;
-		//this.buffer = new ImageData(this.fullWidth, this.fullHeight);
+		this.buffer = new ImageData(this.fullWidth, this.fullHeight);
 		this.update();
-		//this.ctx.putImageData(this.buffer,0,0);
+		this.ctx.putImageData(this.buffer,0,0);
 		this.lastKeys = this.keys;
 		this.lastMouse = this.mouse;
 		this.keys = {...this.lastKeys};
@@ -468,17 +468,17 @@ class Game {
 	/** function to clear the canvas with a given color
 		@param {Color} c color to clear with*/
 	clear(c) {
-		this.ctx.fillStyle = style(c);
-		this.ctx.fillRect(0,0,this.canvas.width, this.canvas.height);
-		// for (let y = 0; y < this.fullHeight; y++) {
-		// 	for (let x = 0; x < this.fullWidth; x++) {
-		// 		let i = y * this.fullWidth * 4 + x * 4;
-		// 		this.buffer.data[i+0] = c[R]
-		// 		this.buffer.data[i+1] = c[G]
-		// 		this.buffer.data[i+2] = c[B]
-		// 		this.buffer.data[i+3] = 255
-		// 	}
-		// }
+		// this.ctx.fillStyle = style(c);
+		// this.ctx.fillRect(0,0,this.canvas.width, this.canvas.height);
+		for (let y = 0; y < this.fullHeight; y++) {
+			for (let x = 0; x < this.fullWidth; x++) {
+				let i = y * this.fullWidth * 4 + x * 4;
+				this.buffer.data[i+0] = c[R]
+				this.buffer.data[i+1] = c[G]
+				this.buffer.data[i+2] = c[B]
+				this.buffer.data[i+3] = 255
+			}
+		}
 	}
 	
 	/** Draws a single pixel in the given color. Can be called with either:
@@ -492,21 +492,21 @@ class Game {
 		function coord(x,y,w) {
 			return y * (w * 4) + x * 4;	
 		}
-		this.ctx.fillStyle = style(c);
-		this.ctx.fillRect(x * ps, y * ps, ps,ps);
-		// for (let yy = 0; yy < ps; yy++) {
-		// 	for (let xx = 0; xx < ps; xx++) {
-		// 		let i = coord(x*ps + xx, y*ps+yy, this.fullWidth);
-		// 		this.buffer.data[i+0] = c[R];
-		// 		this.buffer.data[i+1] = c[G];
-		// 		this.buffer.data[i+2] = c[B];
-		// 		if (c[A]) {
-		// 			this.buffer.data[i+3] = c[A]
-		// 		 } else {
-		// 			this.buffer.data[i+3] = 255;
-		// 		 }
-		// 	}
-		// }
+		// this.ctx.fillStyle = style(c);
+		// this.ctx.fillRect(x * ps, y * ps, ps,ps);
+		for (let yy = 0; yy < ps; yy++) {
+			for (let xx = 0; xx < ps; xx++) {
+				if (x*ps + xx < 0) { continue; }
+				if (x*ps + xx >= this.fullWidth) { continue; }
+				if (y*ps + yy < 0) { continue; }
+				if (y*ps + yy >= this.fullHeight) { continue; }
+				let i = coord(x*ps + xx, y*ps+yy, this.fullWidth);
+				this.buffer.data[i+0] = c[R];
+				this.buffer.data[i+1] = c[G];
+				this.buffer.data[i+2] = c[B];
+				this.buffer.data[i+3] = 255;
+			}
+		}
 	}
 	
 	/** Draw a line between two points, in the given color
@@ -760,8 +760,12 @@ class Game {
 		for (let y = 0; y < sh; y++) {
 			for (let x = 0; x < sw; x++) {
 				const pixel =  spr.pixel(x,y);
-				if (pixel[3] && pixel[3] < .1) { continue; } // Skip nearly/transparent pixels
-				this.draw(px+x, py+y, pixel);
+				
+				if (!pixel[A] || pixel[A] > .5) {
+					if (pixel[A] === 0) { continue; }
+					this.draw(px+x, py+y, pixel);
+				}
+				
 			}
 		}
 	}
