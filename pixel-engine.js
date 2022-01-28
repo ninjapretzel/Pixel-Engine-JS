@@ -370,11 +370,14 @@ class Game {
 		if (!canvas.getContext) { return; }
 		canvas.oncontextmenu = function(e) { e.preventDefault(); e.stopPropagation(); }
 		mainGame = this;
+		this.fps = fps;
 		this.canvas = canvas;
 		this.ctx = canvas.getContext("2d");
 		pixelate(this.ctx);
 		pixelScale = floor(pixelScale);
 		this.pixelScale = pixelScale;
+		this.fullWidth = canvas.width;
+		this.fullHeight = canvas.height;
 		this.width = canvas.width / pixelScale;
 		this.height = canvas.height / pixelScale;
 		console.log("Initializing game", this.width, "x", this.height, "@",pixelScale,"px");
@@ -400,12 +403,22 @@ class Game {
 			this.mouseX = Math.floor((cx - this.rect.left)/this.pixelScale);
 			this.mouseY = Math.floor((cy - this.rect.top)/this.pixelScale);
 		});
-		this.clear([40,80,160]);
+		this.loaderPromise = this.loader();
+	}
+	
+	async loader() {
+		this.load();
+		this.loaded = true;	
+		
 		this.refresh = setInterval( ()=>{
 			this.tick();
-		}, (1000/fps));
+		}, (1000/this.fps));
 		
 	}
+	/** Overridable function for async loading logic  */
+	async load() { }
+	
+	
 	/** Get whether a key has been pressed this frame 
 		@param {string} key name of key to check
 		@returns {boolean} true if pressed this frame, false otherwise */
@@ -439,20 +452,33 @@ class Game {
 	tick() {
 		// console.log("tick");
 		mainGame = this;
+		//this.buffer = new ImageData(this.fullWidth, this.fullHeight);
 		this.update();
+		//this.ctx.putImageData(this.buffer,0,0);
 		this.lastKeys = this.keys;
 		this.lastMouse = this.mouse;
 		this.keys = {...this.lastKeys};
 		this.mouse = {...this.lastMouse};
 	}
 	/** overridable function for game update logic */
-	update() {}
+	update() {
+		this.clear([40,80,160]);
+	}
 	
 	/** function to clear the canvas with a given color
 		@param {Color} c color to clear with*/
 	clear(c) {
 		this.ctx.fillStyle = style(c);
 		this.ctx.fillRect(0,0,this.canvas.width, this.canvas.height);
+		// for (let y = 0; y < this.fullHeight; y++) {
+		// 	for (let x = 0; x < this.fullWidth; x++) {
+		// 		let i = y * this.fullWidth * 4 + x * 4;
+		// 		this.buffer.data[i+0] = c[R]
+		// 		this.buffer.data[i+1] = c[G]
+		// 		this.buffer.data[i+2] = c[B]
+		// 		this.buffer.data[i+3] = 255
+		// 	}
+		// }
 	}
 	
 	/** Draws a single pixel in the given color. Can be called with either:
@@ -462,9 +488,25 @@ class Game {
 		if (!c) { this.draw(x[0], x[1], y); return; }
 		x = Math.floor(x);
 		y = Math.floor(y);
-		this.ctx.fillStyle = style(c);
 		const ps = this.pixelScale;
+		function coord(x,y,w) {
+			return y * (w * 4) + x * 4;	
+		}
+		this.ctx.fillStyle = style(c);
 		this.ctx.fillRect(x * ps, y * ps, ps,ps);
+		// for (let yy = 0; yy < ps; yy++) {
+		// 	for (let xx = 0; xx < ps; xx++) {
+		// 		let i = coord(x*ps + xx, y*ps+yy, this.fullWidth);
+		// 		this.buffer.data[i+0] = c[R];
+		// 		this.buffer.data[i+1] = c[G];
+		// 		this.buffer.data[i+2] = c[B];
+		// 		if (c[A]) {
+		// 			this.buffer.data[i+3] = c[A]
+		// 		 } else {
+		// 			this.buffer.data[i+3] = 255;
+		// 		 }
+		// 	}
+		// }
 	}
 	
 	/** Draw a line between two points, in the given color
@@ -718,7 +760,7 @@ class Game {
 		for (let y = 0; y < sh; y++) {
 			for (let x = 0; x < sw; x++) {
 				const pixel =  spr.pixel(x,y);
-				if (pixel[3] < .01) { continue; } // Skip nearly/transparent pixels
+				if (pixel[3] && pixel[3] < .1) { continue; } // Skip nearly/transparent pixels
 				this.draw(px+x, py+y, pixel);
 			}
 		}

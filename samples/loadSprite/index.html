@@ -19,13 +19,17 @@
 		</div>
 	</body>
 	<script>
-const canvas = document.getElementById("main");
-const game = new Game(canvas, 4);
-async function loader() {
-	// Loading PNGs involves a fetch, so it must be async.
-	const spr = await loadPNG("./frame.png"); 
-	game.drawSprite([1, 1], spr);
+class SpriteGame extends Game {
+	async load() {
+		this.spr = await loadPNG("./frame.png");
+	}
+	
+	update() {
+		this.drawSprite([2,2], this.spr);	
+	}
 }
-loader();
+
+const canvas = document.getElementById("main");
+const game = new SpriteGame(canvas, 4);
 	</script>
 </html>
