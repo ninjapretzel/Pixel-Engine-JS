@@ -21,7 +21,11 @@
 	<script>
 const canvas = document.getElementById("main");
 const game = new Game(canvas, 4);
+async function loader() {
+	await game.loaderPromise;
+	game.drawText([1,1], "the quick brown fox\njumps over the\nlazy dog", [0,0,0,255]);
+}
 
-
+loader();
 	</script>
 </html>
