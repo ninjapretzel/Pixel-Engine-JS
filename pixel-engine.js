@@ -154,7 +154,7 @@ class Font {
 		let ry = this.charHeight;
 		let x = 0;
 		for (let i = 0; i < text.length; i++) {
-			char = text[i];
+			const c = text[i];
 			if (c === '\n') {
 				x = 0; 
 				ry += this.charHeight;
@@ -434,6 +434,11 @@ function drawPartialSprite(p, spr, rect) { return mainGame.drawSprite(p, spr, re
 		@param {string} text text to draw
 		@param {Color} color color to draw with */
 function drawText(p, text, color) { return mainGame.drawText(p, text, color); }
+/** Draws text centered at the given point 
+		@param {Point} p point to draw at 
+		@param {string} text text to draw
+		@param {Color} color color to draw with */
+function drawTextCentered(p, text, color) { return mainGame.drawTextCentered(p, text, color); }
 
 /** Primary class for override when creating a PGE game */
 class Game {
@@ -915,6 +920,15 @@ class Game {
 		}
 		
 		
+	}
+	
+	/** Draws text centered at the given point 
+		@param {Point} p point to draw at 
+		@param {string} text text to draw
+		@param {Color} color color to draw with */
+	drawTextCentered(p, text, color) {
+		const len = this.font.measure(text);
+		drawText([p[X] - len[X]/2, p[Y] - len[Y]/2], text, color);
 	}
 	
 	
