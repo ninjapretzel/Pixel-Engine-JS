@@ -103,6 +103,9 @@ class PalettedSprite {
 	}
 	
 }
+/** Loads a PNG from a URL into a single Sprite 
+	@param {string} url URL to load
+	@returns {Sprite} sprite loaded from URL */
 async function loadPNG(url) {
 	if (!UPNG) { 
 		throw new Error("You must include UPNG.js to support loading PNG files!");
@@ -129,6 +132,69 @@ async function loadPNG(url) {
 		}
 	}
 	return spr;
+}
+
+/** Class representing a font for rendering text in */
+class Font {
+	/** Constructs a new font with the given glyph dictionary
+	 @param {{string:Sprite}} glyphs sprite glyphs to use for the font */
+	constructor(glyphs) {
+		this.glyphs = glyphs;
+		let max = 0;
+		for (let key in glyphs) {
+			if (glyphs[key].height > max) { max = glyphs[key].height; }
+		}
+		this.charHeight = max;
+	}
+	/** Measures the given text in pixels 
+	 @param {string} text Text to measure
+	 @returns {Point} point containing size like [width,height] */
+	measure(text) {
+		let rx = 0;
+		let ry = this.charHeight;
+		let x = 0;
+		for (let i = 0; i < text.length; i++) {
+			char = text[i];
+			if (c === '\n') {
+				x = 0; 
+				ry += this.charHeight;
+			} else {
+				x += this.glyphs[c].width;
+				if (x > rx) { rx = x; }
+			}
+		}
+		return [rx, ry];
+	}
+}
+/** Loads a font where all glyphs are the same size 
+ @param {string} url location of font asset
+ @param {number} w width of font glyphs
+ @param {number} h height of font glyphs
+ @returns {Font} loaded font object */
+async function loadFixedFont(url, w, h) {
+	const spr = await loadPNG(url);
+	const start = ' '.charCodeAt(0);
+	const glyphs = {}
+	for (let c = start; c < 128; c++) {
+		const fontChar = new Sprite(w,h);
+		
+		const x = (c - 32) % 16; // 16 chars per line
+		const y = Math.floor( (c - 32) / 16);
+		
+		for (let i = 0; i < w; i++) {
+			for (let k = 0; k < h; k++) {
+				fontChar.setPixel(i, k, spr.pixel(x*8+i, y*8+k));
+			}
+		}
+		
+		glyphs[String.fromCharCode(c)] = fontChar;
+	}
+	return new Font(glyphs);
+}
+/** Loads the default "Retro" font 
+ @returns {Font} Retro font */
+async function loadRetroFont() { 
+	return await loadFixedFont("/fonts/Retro.png", 8, 8); 
 }
 
 /** TAU > PI. Specifically, TAU = 2 * PI */
@@ -363,12 +429,19 @@ function drawSprite(p, spr) { return mainGame.drawSprite(p, spr); }
 	@param {Sprite} spr sprite to draw
 	@param {Rect} rect region of sprite to draw */
 function drawPartialSprite(p, spr, rect) { return mainGame.drawSprite(p, spr, rect); }
+/** Draws text using the current font at the given position and in the current color 
+		@param {Point} p point to draw at 
+		@param {string} text text to draw
+		@param {Color} color color to draw with */
+function drawText(p, text, color) { return mainGame.drawText(p, text, color); }
 
 /** Primary class for override when creating a PGE game */
 class Game {
 	constructor(canvas, pixelScale = 2, fps = 60) {
 		if (!canvas.getContext) { return; }
 		canvas.oncontextmenu = function(e) { e.preventDefault(); e.stopPropagation(); }
+		
+		
 		mainGame = this;
 		this.fps = fps;
 		this.canvas = canvas;
@@ -408,12 +481,11 @@ class Game {
 	
 	async loader() {
 		this.load();
+		this.font = await loadRetroFont();
 		this.loaded = true;	
-		
 		this.refresh = setInterval( ()=>{
 			this.tick();
 		}, (1000/this.fps));
-		
 	}
 	/** Overridable function for async loading logic  */
 	async load() { }
@@ -795,6 +867,54 @@ class Game {
 				this.draw(px+x, py+y, pixel);
 			}
 		}
+	}
+	
+	/** Draws text using the current font at the given position and in the current color 
+		@param {Point} p point to draw at 
+		@param {string} text text to draw
+		@param {Color} color color to draw with */
+	drawText(p, text, color) {
+		// scale = Math.floor(scale);
+		if (text === null || text === "") { return; }
+		
+		let sx = 0;
+		let sy = 0;
+		const px = p[X];
+		const py = p[Y];
+		for (let char of text) {
+			if (char === '\n') {
+				sx = 0;
+				sy += this.font.charHeight;
+				continue;
+			}
+			let glyph = this.font.glyphs[char];
+			if (glyph) {
+				const w = glyph.width;
+				const h = glyph.height;
+				
+				for (let xx = 0; xx < w; xx++) {
+					for (let yy = 0; yy < h; yy++) {
+						const pixel = glyph.pixel(xx,yy);
+						if (pixel && pixel[R] > 0) {
+							const x = px + sx + xx;
+							const y = py + sy + yy;
+							this.draw(x, y, color);
+						} 
+						// console.log("");
+					}
+				}
+				
+				sx += w;
+				
+			} else {
+				console.log("Skipping character '", char, "'");
+				// forward by constant if glyph does not exist
+				sx += 8; 
+			}
+			
+		}
+		
+		
 	}
 	
 	
