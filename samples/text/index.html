@@ -19,17 +19,14 @@
 		</div>
 	</body>
 	<script>
-class SpriteGame extends Game {
-	async load() {
-		this.spr = await loadPNG("./frame.png");
-	}
-	
+const canvas = document.getElementById("main");
+class TextGame extends Game {
 	update() {
-		this.drawSprite([2,2], this.spr);	
+		this.clear([0,0,0]);
+		this.drawText([1,1], "the quick brown fox\njumps over the\nlazy dog", [255,255,255,255]);
 	}
 }
+const game = new TextGame(canvas, 4);
 
-const canvas = document.getElementById("main");
-const game = new SpriteGame(canvas, 4);
 	</script>
 </html>

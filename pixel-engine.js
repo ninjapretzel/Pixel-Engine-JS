@@ -136,6 +136,8 @@ async function loadPNG(url) {
 
 /** Class representing a font for rendering text in */
 class Font {
+	/** Constructs a new font with the given glyph dictionary
+	 @param {{string:Sprite}} glyphs sprite glyphs to use for the font */
 	constructor(glyphs) {
 		this.glyphs = glyphs;
 		let max = 0;
@@ -144,6 +146,9 @@ class Font {
 		}
 		this.charHeight = max;
 	}
+	/** Measures the given text in pixels 
+	 @param {string} text Text to measure
+	 @returns {Point} point containing size like [width,height] */
 	measure(text) {
 		let rx = 0;
 		let ry = this.charHeight;
@@ -161,6 +166,11 @@ class Font {
 		return [rx, ry];
 	}
 }
+/** Loads a font where all glyphs are the same size 
+ @param {string} url location of font asset
+ @param {number} w width of font glyphs
+ @param {number} h height of font glyphs
+ @returns {Font} loaded font object */
 async function loadFixedFont(url, w, h) {
 	const spr = await loadPNG(url);
 	const start = ' '.charCodeAt(0);
@@ -181,8 +191,10 @@ async function loadFixedFont(url, w, h) {
 	}
 	return new Font(glyphs);
 }
+/** Loads the default "Retro" font 
+ @returns {Font} Retro font */
 async function loadRetroFont() { 
-	return await loadFixedFont("./fonts/Retro.png", 8, 8); 
+	return await loadFixedFont("/fonts/Retro.png", 8, 8); 
 }
 
 /** TAU > PI. Specifically, TAU = 2 * PI */
@@ -429,21 +441,16 @@ class Game {
 		if (!canvas.getContext) { return; }
 		canvas.oncontextmenu = function(e) { e.preventDefault(); e.stopPropagation(); }
 		
-		const loader = async () => { 
-			this.font = await loadRetroFont(); 
-			this.clear([40,80,160]);
-			this.refresh = setInterval( ()=>{
-				this.tick();
-			}, (1000/fps));
-		}
-		this.loaderPromise = loader();
 		
 		mainGame = this;
+		this.fps = fps;
 		this.canvas = canvas;
 		this.ctx = canvas.getContext("2d");
 		pixelate(this.ctx);
 		pixelScale = floor(pixelScale);
 		this.pixelScale = pixelScale;
+		this.fullWidth = canvas.width;
+		this.fullHeight = canvas.height;
 		this.width = canvas.width / pixelScale;
 		this.height = canvas.height / pixelScale;
 		console.log("Initializing game", this.width, "x", this.height, "@",pixelScale,"px");
@@ -469,9 +476,21 @@ class Game {
 			this.mouseX = Math.floor((cx - this.rect.left)/this.pixelScale);
 			this.mouseY = Math.floor((cy - this.rect.top)/this.pixelScale);
 		});
-		
-		
+		this.loaderPromise = this.loader();
 	}
+	
+	async loader() {
+		this.load();
+		this.font = await loadRetroFont();
+		this.loaded = true;	
+		this.refresh = setInterval( ()=>{
+			this.tick();
+		}, (1000/this.fps));
+	}
+	/** Overridable function for async loading logic  */
+	async load() { }
+	
+	
 	/** Get whether a key has been pressed this frame 
 		@param {string} key name of key to check
 		@returns {boolean} true if pressed this frame, false otherwise */
@@ -505,20 +524,33 @@ class Game {
 	tick() {
 		// console.log("tick");
 		mainGame = this;
+		this.buffer = new ImageData(this.fullWidth, this.fullHeight);
 		this.update();
+		this.ctx.putImageData(this.buffer,0,0);
 		this.lastKeys = this.keys;
 		this.lastMouse = this.mouse;
 		this.keys = {...this.lastKeys};
 		this.mouse = {...this.lastMouse};
 	}
 	/** overridable function for game update logic */
-	update() {}
+	update() {
+		this.clear([40,80,160]);
+	}
 	
 	/** function to clear the canvas with a given color
 		@param {Color} c color to clear with*/
 	clear(c) {
-		this.ctx.fillStyle = style(c);
-		this.ctx.fillRect(0,0,this.canvas.width, this.canvas.height);
+		// this.ctx.fillStyle = style(c);
+		// this.ctx.fillRect(0,0,this.canvas.width, this.canvas.height);
+		for (let y = 0; y < this.fullHeight; y++) {
+			for (let x = 0; x < this.fullWidth; x++) {
+				let i = y * this.fullWidth * 4 + x * 4;
+				this.buffer.data[i+0] = c[R]
+				this.buffer.data[i+1] = c[G]
+				this.buffer.data[i+2] = c[B]
+				this.buffer.data[i+3] = 255
+			}
+		}
 	}
 	
 	/** Draws a single pixel in the given color. Can be called with either:
@@ -528,9 +560,25 @@ class Game {
 		if (!c) { this.draw(x[0], x[1], y); return; }
 		x = Math.floor(x);
 		y = Math.floor(y);
-		this.ctx.fillStyle = style(c);
 		const ps = this.pixelScale;
-		this.ctx.fillRect(x * ps, y * ps, ps,ps);
+		function coord(x,y,w) {
+			return y * (w * 4) + x * 4;	
+		}
+		// this.ctx.fillStyle = style(c);
+		// this.ctx.fillRect(x * ps, y * ps, ps,ps);
+		for (let yy = 0; yy < ps; yy++) {
+			for (let xx = 0; xx < ps; xx++) {
+				if (x*ps + xx < 0) { continue; }
+				if (x*ps + xx >= this.fullWidth) { continue; }
+				if (y*ps + yy < 0) { continue; }
+				if (y*ps + yy >= this.fullHeight) { continue; }
+				let i = coord(x*ps + xx, y*ps+yy, this.fullWidth);
+				this.buffer.data[i+0] = c[R];
+				this.buffer.data[i+1] = c[G];
+				this.buffer.data[i+2] = c[B];
+				this.buffer.data[i+3] = 255;
+			}
+		}
 	}
 	
 	/** Draw a line between two points, in the given color
@@ -784,8 +832,12 @@ class Game {
 		for (let y = 0; y < sh; y++) {
 			for (let x = 0; x < sw; x++) {
 				const pixel =  spr.pixel(x,y);
-				if (pixel[3] < .01) { continue; } // Skip nearly/transparent pixels
-				this.draw(px+x, py+y, pixel);
+				
+				if (!pixel[A] || pixel[A] > .5) {
+					if (pixel[A] === 0) { continue; }
+					this.draw(px+x, py+y, pixel);
+				}
+				
 			}
 		}
 	}
