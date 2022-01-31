@@ -30,7 +30,14 @@
 	
 	<script>
 const canvas = document.getElementById("main");
-const game = new Game(canvas, 4);
+class SampleGame extends Game {
+	update() {
+		clear(BLACK);
+		drawTextCentered([160,50], "Pixel-Engine-JS", WHITE);
+		drawTextCentered([160,70], "See samples below", WHITE);
+	}
+}
+const game = new SampleGame(canvas, 2, 5);
 
 
 	</script>
