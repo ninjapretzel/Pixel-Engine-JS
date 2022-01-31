@@ -22,8 +22,8 @@
 const canvas = document.getElementById("main");
 class TextGame extends Game {
 	update() {
-		this.clear([0,0,0]);
-		this.drawText([1,1], "the quick brown fox\njumps over the\nlazy dog", [255,255,255,255]);
+		this.clear(BLACK);
+		this.drawText([1,1], "the quick brown fox\njumps over the\nlazy dog", WHITE);
 	}
 }
 const game = new TextGame(canvas, 4);
