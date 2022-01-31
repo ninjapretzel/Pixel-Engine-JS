@@ -20,16 +20,21 @@
 	</body>
 	<script>
 const canvas = document.getElementById("main");
-const game = new Game(canvas, 2);
-for (let i = 0; i < 200; i++) {
-	const x1 = random(320);
-	const y1 = random(240);
-	const x2 = random(320);
-	const y2 = random(240);
-	const r = random(255);
-	const g = random(255);
-	const b = random(255);
-	game.drawLine([x1,y1], [x2,y2], [r,g,b]);
+class RandomGame extends Game {
+	update() {
+		clear([0,0,0]);
+		for (let i = 0; i < 200; i++) {
+			const x1 = random(320);
+			const y1 = random(240);
+			const x2 = random(320);
+			const y2 = random(240);
+			const r = random(255);
+			const g = random(255);
+			const b = random(255);
+			drawLine([x1,y1], [x2,y2], [r,g,b]);
+		}
+	}
 }
+const game = new RandomGame(canvas, 2, 5);
 	</script>
 </html>
