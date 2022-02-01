@@ -576,7 +576,7 @@ class Game {
 				if (x*ps + xx < 0) { continue; }
 				if (x*ps + xx >= this.fullWidth) { continue; }
 				if (y*ps + yy < 0) { continue; }
-				if (y*ps + yy >= this.fullHeight) { continue; }
+				if (y*ps + yy >= this.fullHeight) { break; }
 				let i = coord(x*ps + xx, y*ps+yy, this.fullWidth);
 				this.buffer.data[i+0] = c[R];
 				this.buffer.data[i+1] = c[G];
