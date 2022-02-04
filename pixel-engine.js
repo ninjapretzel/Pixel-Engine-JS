@@ -10,18 +10,18 @@ function pixelate(context){
 }
 
 /** @typedef {[Number, Number, Number, Number?]} Color Colors are specifically an array of [R,G,B,A?] */
-/** constant for position of Red component in vector colors */   const R = 0;
-/** constant for position of Green component in vector colors */ const G = 1;
-/** constant for position of Blue component in vector colors */  const B = 2;
+/** constant for position of Red component in vector colors */    const R = 0;
+/** constant for position of Green component in vector colors */  const G = 1;
+/** constant for position of Blue component in vector colors */   const B = 2;
 /** constant for position of Alpha component in vector colors */  const A = 3;
-/** Constant for white */   const WHITE = [255,255,255];
-/** Constant for black */   const BLACK = [0,0,0];
-/** Constant for red */     const RED = [255,0,0];
-/** Constant for green */   const GREEN = [0,255,0];
-/** Constant for blue */    const BLUE = [0,0,255];
-/** Constant for cyan */    const CYAN = [0,255,255];
-/** Constant for magenta */ const MAGENTA = [255,0,255];
-/** Constant for yellow */  const YELLOW = [255,255,0];
+/** Constant for white */       const WHITE = [255,255,255];
+/** Constant for black */       const BLACK = [0,0,0];
+/** Constant for red */         const RED = [255,0,0];
+/** Constant for green */       const GREEN = [0,255,0];
+/** Constant for blue */        const BLUE = [0,0,255];
+/** Constant for cyan */        const CYAN = [0,255,255];
+/** Constant for magenta */     const MAGENTA = [255,0,255];
+/** Constant for yellow */      const YELLOW = [255,255,0];
 /** Constant for transparent */ const TRANSPARENT = [0,0,0,0];
 /** @typedef {[Number, Number]} Point Points are specifically an array of [X,Y] */
 /** constant for position of X-coord in vectors */ const X = 0;
@@ -399,14 +399,14 @@ function draw(x,y,c) { return mainGame.draw(x,y,c); }
 	@param {Color} c color to draw with */
 function drawLine(p1, p2, c) { return mainGame.drawLine(p1, p2, c); }
 /** Draw an empty circle centered on the given point, with the given radius, in the given color
-		@param {Point} p point to draw at
-		@param {number} r radius to draw with
-		@param {Color} c color to draw with */
+	@param {Point} p point to draw at
+	@param {number} r radius to draw with
+	@param {Color} c color to draw with */
 function drawCircle(p, r, c) { return mainGame.drawCircle(p, r, c); }
 /** Draw a filled circle centered on the given point, with the given radius, in the given color
-		@param {Point} p point to draw at
-		@param {number} r radius to draw with
-		@param {Color} c color to draw with */
+	@param {Point} p point to draw at
+	@param {number} r radius to draw with
+	@param {Color} c color to draw with */
 function fillCircle(p, r, c) { return mainGame.fillCircle(p, r, c); }
 /** Draw an empty ellipse centered at a point
 	@param {Point} p point to draw around
@@ -438,14 +438,14 @@ function drawSprite(p, spr) { return mainGame.drawSprite(p, spr); }
 	@param {Rect} rect region of sprite to draw */
 function drawPartialSprite(p, spr, rect) { return mainGame.drawSprite(p, spr, rect); }
 /** Draws text using the current font at the given position and in the current color 
-		@param {Point} p point to draw at 
-		@param {string} text text to draw
-		@param {Color} color color to draw with */
+	@param {Point} p point to draw at 
+	@param {string} text text to draw
+	@param {Color} color color to draw with */
 function drawText(p, text, color) { return mainGame.drawText(p, text, color); }
 /** Draws text centered at the given point 
-		@param {Point} p point to draw at 
-		@param {string} text text to draw
-		@param {Color} color color to draw with */
+	@param {Point} p point to draw at 
+	@param {string} text text to draw
+	@param {Color} color color to draw with */
 function drawTextCentered(p, text, color) { return mainGame.drawTextCentered(p, text, color); }
 
 /** Primary class for override when creating a PGE game */
