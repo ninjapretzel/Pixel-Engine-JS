@@ -3,7 +3,7 @@
  * Loosely based off the One-Lone-Coder Pixel Game Engine */
 function pixelate(context){
 	context['imageSmoothingEnabled'] = false;       /* standard */
-	context['mozImageSmoothingEnabled'] = false;    /* Firefox */
+	// context['mozImageSmoothingEnabled'] = false;    /* Firefox */
 	context['oImageSmoothingEnabled'] = false;      /* Opera */
 	context['webkitImageSmoothingEnabled'] = false; /* Safari */
 	context['msImageSmoothingEnabled'] = false;     /* IE */
