@@ -193,8 +193,16 @@ async function loadFixedFont(url, w, h) {
 }
 /** Loads the default "Retro" font 
  @returns {Font} Retro font */
-async function loadRetroFont() { 
-	return await loadFixedFont("/fonts/Retro.png", 8, 8); 
+async function loadRetroFont() {
+	try {
+		return await loadFixedFont("/fonts/Retro.png", 8, 8); 
+	} catch {
+		try {
+			return await loadFixedFont("/Pixel-Engine-JS/fonts/Retro.png", 8, 8); 
+		} catch {
+			console.error("Failed to load Retro font");
+		}
+	}
 }
 
 /** TAU > PI. Specifically, TAU = 2 * PI */
