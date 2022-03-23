@@ -167,7 +167,6 @@ function buildMenu(menuObject, name="root") {
 	menuObject.$hasChildren = function() { return this.$items.length > 0; };
 	menuObject.$items = [];
 	
-	
 	menuObject.$onUp = function() {
 		this.$cellCursor[Y]--;
 		this.$maybeRowUp();
@@ -361,7 +360,7 @@ const skin = Sprite.fromData(48, 24, [
 const canvas = document.getElementById("main");
 const mm = new MenuManager();
 
-class TextGame extends Game {
+class MenuGame extends Game {
 	update() {
 		this.clear(BLACK);
 		// this.drawText([1,1], "the quick brown fox\njumps over the\nlazy dog", WHITE);
@@ -396,4 +395,4 @@ Use arrow keys to navigate`, WHITE);
 		//main.$drawSelf(this, skin, [10,64]);
 	}
 }
-const game = new TextGame(canvas, 2);
+const game = new MenuGame(canvas, 2);
