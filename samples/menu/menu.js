@@ -383,8 +383,13 @@ class TextGame extends Game {
 		}
 		
 		if (this.lastAction) {
-			this.drawText([10,200], this.lastAction, WHITE);
+			this.drawText([10,160], this.lastAction, WHITE);
 		}
+		this.drawText([10, 200], `Press 'C' to open the menu
+Press 'Z' to confirm
+Press 'X' to cancel
+Use arrow keys to navigate`, WHITE);
+		
 		
 		//this.drawPartialSprite([64, 64], skin, [0,0,24,24]);
 		
