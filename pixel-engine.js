@@ -447,7 +447,20 @@ function drawText(p, text, color) { return mainGame.drawText(p, text, color); }
 	@param {string} text text to draw
 	@param {Color} color color to draw with */
 function drawTextCentered(p, text, color) { return mainGame.drawTextCentered(p, text, color); }
+/** Draws text with an outline
+		@param {Point} p point to draw at
+		@param {string} text text to draw
+		@param {Color} col color inside text
+		@param {Color} outlineCol color for outline */
+function drawTextOutline(p, text, col, outlineCol) { return mainGame.drawTextOutline(p, text, col, outlineCol); }
 
+/** Draws text centered at the given point, with an outline 
+		@param {Point} p point to draw at 
+		@param {string} text text to draw
+		@param {Color} col color to draw with 
+		@param {Color} outlineCol color to draw with */
+function drawTextCenteredOutline(p, text, col, outlineCol) { return mainGame.drawTextCenteredOutline(p, text, col, outlineCol); }
+	
 /** Primary class for override when creating a PGE game */
 class Game {
 	constructor(canvas, pixelScale = 2, fps = 60) {
@@ -939,6 +952,84 @@ class Game {
 		drawText([p[X] - len[X]/2, p[Y] - len[Y]/2], text, color);
 	}
 	
+	/** Draws text with an outline
+		@param {Point} p point to draw at
+		@param {string} text text to draw
+		@param {Color} col color inside text
+		@param {Color} outlineCol color for outline */
+	drawTextOutline(p, text, col, outlineCol) {
+		if (text == null || text == "") { return; }
+		let overdraw = []
+		const OUTLINE_HEIGHT = 2 + this.font.charHeight;
+		function alreadyDrawn(x, y) {
+			if (overdraw) {
+				const xa = x+1;
+				const ya = y+1;
+				const index = xa + OUTLINE_HEIGHT * ya;
+				return overdraw[index];
+			}
+			return false;
+		}
+		function drawn(x, y) {
+			if (overdraw) {
+				const xa = x+1;
+				const ya = y+1;
+				const index = xa + OUTLINE_HEIGHT * ya;
+				overdraw[index] = true;
+			}
+		}
+		
+		let sx = 0;
+		let sy = 0;
+		const px = p[X];
+		const py = p[Y];
+		for (let c of text) {
+			if (c == '\n') {
+				sx = 0;
+				sy += this.font.charHeight;
+			} else {
+				const glyph = this.font.glyphs[c];
+				function hasPixel(x,y) {
+					const pix = glyph.pixel(x,y);
+					return pix && pix[R] > 0;
+				}
+				if (glyph) {
+					const w = glyph.width;
+					const h = glyph.height;
+					overdraw = [];
+					
+					for (let i = 0; i < w; i++) {
+						for (let j = 0; j < h; j++) {
+							const pixel = glyph.pixel(i,j);
+							if (pixel && pixel[R] > 0) {
+								this.draw(px+sx+i, py+sy+j, col);
+								if (!alreadyDrawn(i-1, j) && (i == 0 || !hasPixel(i-1, j))) { this.draw(px + sx + i - 1, py + sy + j, outlineCol); drawn(i-1, j); }
+								if (!alreadyDrawn(i, j-1) && (j == 0 || !hasPixel(i, j-1))) { this.draw(px + sx + i, py + sy + j - 1, outlineCol); drawn(i, j-1); }
+								if (!alreadyDrawn(i+1, j) && (i == w-1 || !hasPixel(i+1, j))) { this.draw(px + sx + i + 1, py + sy + j, outlineCol); drawn(i+1, j); }
+								if (!alreadyDrawn(i, j+1) && (i == h-1 || !hasPixel(i, j+1))) { this.draw(px + sx + i, py + sy + j + 1, outlineCol); drawn(i, j+1); }
+							}
+						}
+					}
+					
+					sx += w;
+					
+				} else {
+					sx += 8;
+				}
+			}
+			
+		}
+		
+	}
 	
+	/** Draws text centered at the given point with an outline
+		@param {Point} p point to draw at 
+		@param {string} text text to draw
+		@param {Color} col color to draw with 
+		@param {Color} outlineCol color to draw with */
+	drawTextCenteredOutline(p, text, col, outlineCol) {
+		const len = this.font.measure(text);
+		drawTextOutline([p[X] - len[X]/2, p[Y] - len[Y]/2], text, col, outlineCol);
+	}
 	
 }
