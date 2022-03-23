@@ -1,6 +1,6 @@
 /** pixel-engine.js
- * single-file include for the JS version of the Pixel Game Engine (PGE)
- * Loosely based off the One-Lone-Coder Pixel Game Engine */
+	single-file include for the JS version of the Pixel Game Engine (PGE)
+	Loosely based off the One-Lone-Coder Pixel Game Engine */
 function pixelate(context){
 	context['imageSmoothingEnabled'] = false;       /* standard */
 	// context['mozImageSmoothingEnabled'] = false;    /* Firefox */
@@ -23,6 +23,8 @@ function pixelate(context){
 /** Constant for magenta */     const MAGENTA = [255,0,255];
 /** Constant for yellow */      const YELLOW = [255,255,0];
 /** Constant for transparent */ const TRANSPARENT = [0,0,0,0];
+/** Constant for dark gray */   const DARK_GRAY = [80,80,80];
+/** Constant for light gray */  const LIGHT_GRAY = [180,180,180];
 /** @typedef {[Number, Number]} Point Points are specifically an array of [X,Y] */
 /** constant for position of X-coord in vectors */ const X = 0;
 /** constant for position of Y-coord in vectors */ const Y = 1;
@@ -32,7 +34,9 @@ function pixelate(context){
 
 /** Class for representing sprite data */
 class Sprite {
-	/** sets up a new w x h sprite with _the same_ transparent Color in every spot */
+	/** sets up a new w x h sprite with _the same_ transparent Color in every spot
+		@param {number} w width of sprite
+		@param {number} h height of sprite */
 	constructor(w, h) {
 		this.width = w;
 		this.height = h;
@@ -42,11 +46,30 @@ class Sprite {
 			this.pixels[i] = transparent;
 		}
 	}
+	/** Create a sprite from raw sprite data in the form of arrays of ids and pixels 
+		@param {number} w width of sprite
+		@param {number} h height of sprite 
+		@param {number[]} data sprite color ids 
+		@param {Color[]} palette color information */
+	static fromData(w, h, data, palette) {
+		const result = new Sprite(w,h);
+		const stop = w * h;
+		if (stop != data.length) {
+			throw new Error(`Wrong amount of data to initialize sprite. Expected ${stop}, had ${data.length}.`);
+		}
+		const size = palette.length;
+		for (let i = 0; i < stop; i++) {
+			result.pixels[i] = palette[data[i] % size];
+		}
+		return result
+	}
 	/** Gets the size of this sprite as a Point */
 	get size() { return [this.w,this.h]; }
 	/** Gets the number of pixels in this sprite */
 	get length() { return this.w * this.h; }
-	/** Gets the color at position (x,y) */
+	/** Gets the color at position (x,y) 
+		@param {number} x 
+		@param {number} y */
 	pixel(x, y) {
 		const i = x + y * this.width;
 		if (i < 0 || i >= this.length) {
@@ -54,7 +77,10 @@ class Sprite {
 		}
 		return this.pixels[i]; 
 	}
-	/** sets the color at (x,y) to be color c */
+	/** sets the color at (x,y) to be color c 
+		@param {number} x
+		@param {number} y
+		@param {Color} c */
 	setPixel(x, y, c) {
 		const i = x + y * this.width;
 		if (i < 0 || i >= this.length) {
@@ -63,6 +89,7 @@ class Sprite {
 		this.pixels[i] = c;
 	}
 }
+
 
 /** Class for representing 'paletted' sprite data */
 class PalettedSprite {
@@ -247,10 +274,10 @@ function round(v) {
 	return Math.round(v); 
 }
 /** Clamps the given number or vector
- * @param {Array|number} v number or vector to clamp
- * @param {Array|number} min minimum of clamp. Must be same type as v
- * @param {Array|number} max maximum of clamp. Must be same type as v
- * @returns {Array|number} array with all components clamped, or clamped number */
+	@param {Array|number} v number or vector to clamp
+	@param {Array|number} min minimum of clamp. Must be same type as v
+	@param {Array|number} max maximum of clamp. Must be same type as v
+	@returns {Array|number} array with all components clamped, or clamped number */
 function clamp(v,min=0,max=1) { 
 	if (Array.isArray(v)) {
 		const result = [];
@@ -262,8 +289,8 @@ function clamp(v,min=0,max=1) {
 	return (v < min) ? min : ((v > max) ? max : v); 
 }
 /** Takes the fractional part of the given number or vector
- * @param {Array|number} v number or vector to frac
- * @returns {Array|number} array with all components frac'd, or frac'd number */
+	@param {Array|number} v number or vector to frac
+	@returns {Array|number} array with all components frac'd, or frac'd number */
 function frac(v) {
 	if (Array.isArray(v)) {
 		const result = [];
@@ -275,8 +302,8 @@ function frac(v) {
 	return v-Math.floor(v); 
 }
 /** Absolute value's the given number or vector
- * @param {Array|number} v number or vector to abs
- * @returns {Array|number} array with all components abs'd, or abs'd number */
+	@param {Array|number} v number or vector to abs
+	@returns {Array|number} array with all components abs'd, or abs'd number */
 function abs(v) { 
 	if (Array.isArray(v)) {
 		const result = [];
@@ -288,34 +315,47 @@ function abs(v) {
 	return v < 0 ? -v : v; 
 }
 /** Returns a random integer
- * @param {number} a First endpoint (required)
- * @param {number} b Second endpoint (defaults to zero)
- * @returns {number} integer in range [a, b) or [0, a)*/
+	@param {number} a First endpoint (required)
+	@param {number} b Second endpoint (defaults to zero)
+	@returns {number} integer in range [a, b) or [0, a)*/
 function random(a,b=0) { return Math.floor(a + (b-a) * Math.random()); }
-/** Helper function that returns the style for a given color
- * @param {Color|number} r Either a packed {Color} or just the red component
- * @param {?number} g green component
- * @param {?number} b blue component */
-function style(r,g,b,a=1.0) { 
-	if (Array.isArray(r)) { 
-		a = (r[3]==undefined ? 1.0 : r[3]);
-		b = r[2]; g = r[1]; r = r[0]; 
-	}
-	if (a > 1.0) { a /= 255; }
-	r = floor(r); g = floor(g); b = floor(b);
-	return `rgba(${r},${g},${b},${a})`; 
+/** Helper to make a {Color} from a hex number in ARGB form
+	@param {number} n Hex number to convert to {Color}
+	@returns {Color} color of specified number */
+function ARGB(n) {
+	const b = n % 256; n = Math.floor(n / 256);
+	const g = n % 256; n = Math.floor(n / 256);
+	const r = n % 256; n = Math.floor(n / 256);
+	const a = n % 256;
+	return [ r, g, b, a ]
 }
-/** Helper function to get a style from floating-point RGB colors [0,1] 
- * @param {number} r RED component in [0, 1]
- * @param {number} g GRN component in [0, 1]
- * @param {number} b BLU component in [0, 1]
- * @returns {string} style representing RGB color */
-function rgb(r,g,b,a=1.0) { return style(r*255,g*255,b*255,a); }
+/** Helper to make a {Color} from a hex number in RGBA form
+	@param {number} n Hex number to convert to {Color}
+	@returns {Color} color of specified number */
+function RGBA(n) {
+	const a = n % 256; n = Math.floor(n / 256);
+	const b = n % 256; n = Math.floor(n / 256);
+	const g = n % 256; n = Math.floor(n / 256);
+	const r = n % 256;
+	return [ r, g, b, a ]
+}
+/** Helper function to get a {Color} from floating-point RGB colors [0,1] 
+	@param {number} r RED component in [0, 1]
+	@param {number} g GRN component in [0, 1]
+	@param {number} b BLU component in [0, 1]
+	@returns {string} style representing RGB color */
+function rgb(r,g,b,a=1.0) { 
+	const rr = Math.floor(r*255);
+	const gg = Math.floor(g*255);
+	const bb = Math.floor(b*255);
+	const aa = Math.floor(a*255);
+	return [ rr, gg, bb, aa ]; 
+}
 /** Helper function to get a style from floating-point HSV colors [0,1]
- * @param {number} h HUE component in [0, 1]
- * @param {number} s SAT component in [0, 1]
- * @param {number} v VAL component in [0, 1]
- * @returns {string} style representing HSV color */
+	@param {number} h HUE component in [0, 1]
+	@param {number} s SAT component in [0, 1]
+	@param {number} v VAL component in [0, 1]
+	@returns {string} style representing HSV color */
 function hsv(h,s,v,a=1.0) {
 	h = fmod(h, 1.0);
 	if (h < 0) { h += 1.0; }
@@ -385,7 +425,6 @@ function mouseReleased(button) { return mainGame.mouseReleased(button); }
 	@returns {Point} array containing [mouseX,mouseY] */
 function mousePos() { return mainGame.mousePos(); }
 
-
 /** function to clear the canvas with a given color
 	@param {Color} c color to clear with*/
 function clear(c) { return mainGame.clear(c); }
@@ -448,19 +487,18 @@ function drawText(p, text, color) { return mainGame.drawText(p, text, color); }
 	@param {Color} color color to draw with */
 function drawTextCentered(p, text, color) { return mainGame.drawTextCentered(p, text, color); }
 /** Draws text with an outline
-		@param {Point} p point to draw at
-		@param {string} text text to draw
-		@param {Color} col color inside text
-		@param {Color} outlineCol color for outline */
+	@param {Point} p point to draw at
+	@param {string} text text to draw
+	@param {Color} col color inside text
+	@param {Color} outlineCol color for outline */
 function drawTextOutline(p, text, col, outlineCol) { return mainGame.drawTextOutline(p, text, col, outlineCol); }
-
 /** Draws text centered at the given point, with an outline 
-		@param {Point} p point to draw at 
-		@param {string} text text to draw
-		@param {Color} col color to draw with 
-		@param {Color} outlineCol color to draw with */
+	@param {Point} p point to draw at 
+	@param {string} text text to draw
+	@param {Color} col color to draw with 
+	@param {Color} outlineCol color to draw with */
 function drawTextCenteredOutline(p, text, col, outlineCol) { return mainGame.drawTextCenteredOutline(p, text, col, outlineCol); }
-	
+
 /** Primary class for override when creating a PGE game */
 class Game {
 	constructor(canvas, pixelScale = 2, fps = 60) {
@@ -488,7 +526,7 @@ class Game {
 		this.lastMouse = {}
 		canvas.addEventListener("keydown", (e) => {
 			if (this.keys[e.key]) { return; }
-			this.keys[e.key] = true; 
+			this.keys[e.key] = true;
 		});
 		canvas.addEventListener("keyup", (e) => { delete this.keys[e.key]; });
 		canvas.addEventListener("mousedown", (e) => { this.mouse[e.button] = true; });
@@ -566,8 +604,6 @@ class Game {
 	/** function to clear the canvas with a given color
 		@param {Color} c color to clear with*/
 	clear(c) {
-		// this.ctx.fillStyle = style(c);
-		// this.ctx.fillRect(0,0,this.canvas.width, this.canvas.height);
 		for (let y = 0; y < this.fullHeight; y++) {
 			for (let x = 0; x < this.fullWidth; x++) {
 				let i = y * this.fullWidth * 4 + x * 4;
@@ -590,8 +626,6 @@ class Game {
 		function coord(x,y,w) {
 			return y * (w * 4) + x * 4;	
 		}
-		// this.ctx.fillStyle = style(c);
-		// this.ctx.fillRect(x * ps, y * ps, ps,ps);
 		for (let yy = 0; yy < ps; yy++) {
 			for (let xx = 0; xx < ps; xx++) {
 				if (x*ps + xx < 0) { continue; }
