@@ -97,7 +97,7 @@ class MenuGame extends Game {
 		// this.drawText(mousePos(), "the quick brown fox\njumps over the\nlazy dog", WHITE);
 		// this.drawSprite([0,0], skin);
 		if (this.keyPressed('c')) { mm.open(menu); }
-		mm.draw(this, skin, [ 10, 10] );
+		
 		if (this.keyPressed('ArrowUp')) { mm.onUp(); }
 		if (this.keyPressed('ArrowDown')) { mm.onDown(); }
 		if (this.keyPressed('ArrowLeft')) { mm.onLeft(); }
@@ -111,6 +111,7 @@ class MenuGame extends Game {
 			mm.close();
 		}
 		
+		mm.draw(this, defaultMenuSkin, [ 10, 10 ] );
 		if (this.lastAction) {
 			this.drawText([10,160], this.lastAction, WHITE);
 		}
