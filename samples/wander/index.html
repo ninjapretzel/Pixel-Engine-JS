@@ -33,10 +33,10 @@ for (let i = 0; i < 10; i++) {
 let rectA = [ 30, 30, 10, 10];
 class Demo extends Game {
 	update() {
-		if (keyHeld('w')) { pos[Y] -= speed; }
-		if (keyHeld('s')) { pos[Y] += speed; }
-		if (keyHeld('a')) { pos[X] -= speed; }
-		if (keyHeld('d')) { pos[X] += speed; }
+		if (keyHeld('w')) { pos.y -= speed; }
+		if (keyHeld('s')) { pos.y += speed; }
+		if (keyHeld('a')) { pos.x -= speed; }
+		if (keyHeld('d')) { pos.x += speed; }
 		if (keyPressed('b') || mousePressed(LEFT_MOUSE)) {
 			bgColor = [ random(33,111), random(33,111), random(33,111) ]
 		}

@@ -78,8 +78,8 @@ class MenuManager {
 		if (this.panels.length == 0) { return; }
 		for (let panel of this.panels) {
 			panel.$drawSelf(pge, gfx, offset);
-			offset[X] += this._OFFSET[X];
-			offset[Y] += this._OFFSET[Y];
+			offset.x += this._OFFSET.x;
+			offset.y += this._OFFSET.y;
 		}
 		
 		const pos = this.top().$cursorPos;
@@ -120,44 +120,44 @@ function buildMenu(menuObject, name="root") {
 	menuObject.$items = [];
 	
 	menuObject.$onUp = function() {
-		this.$cellCursor[Y]--;
+		this.$cellCursor.y--;
 		this.$maybeRowUp();
 		this.$clampCursor();
 	}
 	menuObject.$onDown = function() {
-		this.$cellCursor[Y]++;
+		this.$cellCursor.y++;
 		this.$maybeRowDown();
 		this.$clampCursor();
 	}
 	menuObject.$onLeft = function() {
-		this.$cellCursor[X]--;
+		this.$cellCursor.x--;
 		this.$maybeRowUp();
 		this.$clampCursor();
 	}
 	menuObject.$onRight = function() {
-		this.$cellCursor[X]++;
+		this.$cellCursor.x++;
 		this.$maybeRowDown();
 		this.$clampCursor();
 	}
 	
 	menuObject.$maybeRowUp = function() {
-		if (this.$cellCursor[X] < 0) { this.$cellCursor[Y]--; this.$cellCursor[X] = this.$cellTable[X]-1; }
-		if (this.$cellCursor[Y] < this.$topVisibleRow) {
-			this.$topVisibleRow = clamp(--this.$topVisibleRow, 0, this.$totalRows - this.$cellTable[Y]);
+		if (this.$cellCursor.x < 0) { this.$cellCursor.y--; this.$cellCursor.x = this.$cellTable.x-1; }
+		if (this.$cellCursor.y < this.$topVisibleRow) {
+			this.$topVisibleRow = clamp(--this.$topVisibleRow, 0, this.$totalRows - this.$cellTable.y);
 		}
 	}
 	menuObject.$maybeRowDown = function() {
-		if (this.$cellCursor[X] > this.$cellTable[X]-1) { this.$cellCursor[Y]++; this.$cellCursor[X] = 0; }
-		if (this.$cellCursor[Y] > (this.$topVisibleRow + this.$cellTable[Y] - 1)) {
-			this.$topVisibleRow = clamp(++this.$topVisibleRow, 0, this.$totalRows - this.$cellTable[Y]);
+		if (this.$cellCursor.x > this.$cellTable.x-1) { this.$cellCursor.y++; this.$cellCursor.x = 0; }
+		if (this.$cellCursor.y > (this.$topVisibleRow + this.$cellTable.y - 1)) {
+			this.$topVisibleRow = clamp(++this.$topVisibleRow, 0, this.$totalRows - this.$cellTable.y);
 		}
 	}
 	menuObject.$clampCursor = function() {
-		this.$cursorItem = this.$cellCursor[Y] * this.$cellTable[X] + this.$cellCursor[X];
+		this.$cursorItem = this.$cellCursor.y * this.$cellTable.x + this.$cellCursor.x;
 		if (this.$cursorItem >= this.$items.length) {
 			this.$cursorItem = this.$items.length - 1;
-			this.$cellCursor[X] = this.$cursorItem % this.$cellTable[X];
-			this.$cellCursor[Y] = Math.floor(this.$cursorItem / this.$cellTable[X]);
+			this.$cellCursor.x = this.$cursorItem % this.$cellTable.x;
+			this.$cellCursor.y = Math.floor(this.$cursorItem / this.$cellTable.x);
 		}
 		if (this.$cursorItem < 0) {
 			this.$cellCursor = [0,0]
@@ -177,44 +177,44 @@ function buildMenu(menuObject, name="root") {
 	}
 	
 	menuObject.$drawSelf = function(pge, gfx, offset) {
-		const ox = offset[X];
-		const oy = offset[Y];
-		const w = this.$sizeInPatches[X];
-		const h = this.$sizeInPatches[Y];
+		const ox = offset.x;
+		const oy = offset.y;
+		const w = this.$sizeInPatches.x;
+		const h = this.$sizeInPatches.y;
 		const pos = [0,0]
 		for (let x = 0; x < w; x++) {
 			for (let y = 0; y < h; y++) {
 				const screenLoc = [ x * NPATCH + ox, y * NPATCH + oy ]
 				const srcPatch = [ 0, 0, NPATCH, NPATCH ]
-				if (x > 0) { srcPatch[X] = NPATCH; }
-				if (x == w-1) { srcPatch[X] = NPATCH * 2; }
-				if (y > 0) { srcPatch[Y] = NPATCH; }
-				if (y == h-1) { srcPatch[Y] = NPATCH * 2; }
+				if (x > 0) { srcPatch.x = NPATCH; }
+				if (x == w-1) { srcPatch.x = NPATCH * 2; }
+				if (y > 0) { srcPatch.y = NPATCH; }
+				if (y == h-1) { srcPatch.y = NPATCH * 2; }
 				
 				pge.drawPartialSprite(screenLoc, gfx, srcPatch);
 			}
 		}
 		
 		const cell = [ 0, 0 ];
-		const cw = this.$cellSize[X];
-		const ch = this.$cellSize[Y];
-		const pw = this.$cellPadding[X];
-		const ph = this.$cellPadding[Y];
-		const topLeft = this.$topVisibleRow * this.$cellTable[X];
-		const bottomRight = Math.min(this.$cellTable[Y] * this.$cellTable[X] + topLeft, this.$items.length);
+		const cw = this.$cellSize.x;
+		const ch = this.$cellSize.y;
+		const pw = this.$cellPadding.x;
+		const ph = this.$cellPadding.y;
+		const topLeft = this.$topVisibleRow * this.$cellTable.x;
+		const bottomRight = Math.min(this.$cellTable.y * this.$cellTable.x + topLeft, this.$items.length);
 		const visibleItems = bottomRight - topLeft;
 		
 		// Draw scroll markers
 		if (this.$topVisibleRow > 0) {
-			pos[X] = w - 2;
-			pos[Y] = 0
-			const screenLoc = [ pos[X] * NPATCH + ox, pos[Y] * NPATCH + oy ];
+			pos.x = w - 2;
+			pos.y = 0
+			const screenLoc = [ pos.x * NPATCH + ox, pos.y * NPATCH + oy ];
 			pge.drawPartialSprite(screenLoc, gfx, UP_ARROW);
 		}
-		if ((this.$totalRows - this.$topVisibleRow) > this.$cellTable[Y]) {
-			pos[X] = w - 2;
-			pos[Y] = h - 1;
-			const screenLoc = [ pos[X] * NPATCH + ox, pos[Y] * NPATCH + oy ];
+		if ((this.$totalRows - this.$topVisibleRow) > this.$cellTable.y) {
+			pos.x = w - 2;
+			pos.y = h - 1;
+			const screenLoc = [ pos.x * NPATCH + ox, pos.y * NPATCH + oy ];
 			pge.drawPartialSprite(screenLoc, gfx, DOWN_ARROW);
 		}
 		
@@ -222,24 +222,24 @@ function buildMenu(menuObject, name="root") {
 		for (let i = 0; i < visibleItems; i++) {
 			let key = this.$items[topLeft + i];
 			let item = this[key];
-			cell[X] = i % this.$cellTable[X];
-			cell[Y] = Math.floor(i / this.$cellTable[X]);
-			pos[X] = cell[X] * (cw + pw) + 1;
-			pos[Y] = cell[Y] * (ch + ph) + 1;
-			let screenLoc = [ pos[X] * NPATCH + ox, pos[Y] * NPATCH + oy ];
+			cell.x = i % this.$cellTable.x;
+			cell.y = Math.floor(i / this.$cellTable.x);
+			pos.x = cell.x * (cw + pw) + 1;
+			pos.y = cell.y * (ch + ph) + 1;
+			let screenLoc = [ pos.x * NPATCH + ox, pos.y * NPATCH + oy ];
 			pge.drawText(screenLoc, key, item.$enabled ? WHITE : DARK_GRAY);
 			
 			if (item.$hasChildren()) {
-				pos[X] = cell[X] * (cw + pw) + 1 + cw;
-				pos[Y] = cell[Y] * (ch + ph) + 1;
-				screenLoc = [ pos[X] * NPATCH + ox, pos[Y] * NPATCH + oy ];
+				pos.x = cell.x * (cw + pw) + 1 + cw;
+				pos.y = cell.y * (ch + ph) + 1;
+				screenLoc = [ pos.x * NPATCH + ox, pos.y * NPATCH + oy ];
 				pge.drawPartialSprite(screenLoc, gfx, RIGHT_ARROW);
 			}
 			
 		}
 		
-		this.$cursorPos[X] = (this.$cellCursor[X] * (cw + pw)) * NPATCH + ox - NPATCH;
-		this.$cursorPos[Y] = ((this.$cellCursor[Y] - this.$topVisibleRow) * (ch + ph)) * NPATCH + oy + NPATCH;
+		this.$cursorPos.x = (this.$cellCursor.x * (cw + pw)) * NPATCH + ox - NPATCH;
+		this.$cursorPos.y = ((this.$cellCursor.y - this.$topVisibleRow) * (ch + ph)) * NPATCH + oy + NPATCH;
 		
 	}
 	let cellW = 0;
@@ -256,16 +256,16 @@ function buildMenu(menuObject, name="root") {
 			buildMenu(v, key);
 		}
 		const sz = v.$getSize();
-		cellW = Math.max(cellW, sz[X]);
-		cellH = Math.max(cellH, sz[Y]);
+		cellW = Math.max(cellW, sz.x);
+		cellH = Math.max(cellH, sz.y);
 	}
 	menuObject.$cellSize = [ cellW, cellH ];
 	menuObject.$sizeInPatches = [
-		menuObject.$cellTable[X] * menuObject.$cellSize[X] + (menuObject.$cellTable[X]-1) * menuObject.$cellPadding[X] + 2,
-		menuObject.$cellTable[Y] * menuObject.$cellSize[Y] + (menuObject.$cellTable[Y]-1) * menuObject.$cellPadding[Y] + 2,
+		menuObject.$cellTable.x * menuObject.$cellSize.x + (menuObject.$cellTable.x-1) * menuObject.$cellPadding.x + 2,
+		menuObject.$cellTable.y * menuObject.$cellSize.y + (menuObject.$cellTable.y-1) * menuObject.$cellPadding.y + 2,
 	]
 	const len = menuObject.$items.length;
-	const w = menuObject.$cellTable[X];
+	const w = menuObject.$cellTable.x;
 	menuObject.$totalRows = Math.floor(len / w) + (((len % w) > 0) ? 1 : 0);
 	
 }

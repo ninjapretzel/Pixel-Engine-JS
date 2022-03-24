@@ -9,11 +9,6 @@ function pixelate(context){
 	context['msImageSmoothingEnabled'] = false;     /* IE */
 }
 
-/** @typedef {[Number, Number, Number, Number?]} Color Colors are specifically an array of [R,G,B,A?] */
-/** constant for position of Red component in vector colors */    const R = 0;
-/** constant for position of Green component in vector colors */  const G = 1;
-/** constant for position of Blue component in vector colors */   const B = 2;
-/** constant for position of Alpha component in vector colors */  const A = 3;
 /** Constant for white */       const WHITE = [255,255,255];
 /** Constant for black */       const BLACK = [0,0,0];
 /** Constant for red */         const RED = [255,0,0];
@@ -25,12 +20,36 @@ function pixelate(context){
 /** Constant for transparent */ const TRANSPARENT = [0,0,0,0];
 /** Constant for dark gray */   const DARK_GRAY = [80,80,80];
 /** Constant for light gray */  const LIGHT_GRAY = [180,180,180];
+
+/** @typedef {[Number, Number, Number, Number?]} Color Colors are specifically an array of [R,G,B,A?] */
 /** @typedef {[Number, Number]} Point Points are specifically an array of [X,Y] */
-/** constant for position of X-coord in vectors */ const X = 0;
-/** constant for position of Y-coord in vectors */ const Y = 1;
 /** @typedef {[number, number, number, number]} Rect rectangle in [X,Y,W,H] form */
-/** constant for position of width in rectangle  */ const W = 2;
-/** constant for position of height in rectangle */ const H = 3;
+Object.defineProperty(Array.prototype, "x", {
+	get() { return this[0]; }, set(v) { this[0] = v; }, enumerable: false,	
+});
+Object.defineProperty(Array.prototype, "y", {
+	get() { return this[1]; }, set(v) { this[1] = v; }, enumerable: false,	
+});
+Object.defineProperty(Array.prototype, "w", {
+	get() { return this[2]; }, set(v) { this[2] = v; }, enumerable: false,	
+});
+Object.defineProperty(Array.prototype, "h", {
+	get() { return this[3]; }, set(v) { this[3] = v; }, enumerable: false,	
+});
+
+Object.defineProperty(Array.prototype, "r", {
+	get() { return this[0]; }, set(v) { this[0] = v; }, enumerable: false,	
+});
+Object.defineProperty(Array.prototype, "g", {
+	get() { return this[1]; }, set(v) { this[1] = v; }, enumerable: false,	
+});
+Object.defineProperty(Array.prototype, "b", {
+	get() { return this[2]; }, set(v) { this[2] = v; }, enumerable: false,	
+});
+Object.defineProperty(Array.prototype, "a", {
+	get() { return this[3] ?? 255; }, set(v) { this[3] = v; }, enumerable: false,	
+});
+
 /** Retro font pixel data */
 const RETRO_DATA= [
 	0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,1,1,0,1,1,0,0,0,1,1,0,1,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,
@@ -424,14 +443,14 @@ function hsv(h,s,v,a=1.0) {
 	@param {Rect} rect rectangle to check 
 	@param {Point} point point to check */
 function contains(rect, point) {
-	let x1 = rect[X];
-	let y1 = rect[Y];
-	let x2 = rect[X] + rect[W];
-	let y2 = rect[Y] + rect[H];
+	let x1 = rect.x;
+	let y1 = rect.y;
+	let x2 = rect.x + rect.w;
+	let y2 = rect.y + rect.h;
 	if (x1 > x2) { const t = x1; x1 = x2; x2 = t; }
 	if (y1 > y2) { const t = y1; y1 = y2; y2 = t; }
-	const x = point[X];
-	const y = point[Y];
+	const x = point.x;
+	const y = point.y;
 	return (x >= x1 && x <= x2 && y >= y1 && y <= y2);
 }
 
@@ -654,9 +673,9 @@ class Game {
 		for (let y = 0; y < this.fullHeight; y++) {
 			for (let x = 0; x < this.fullWidth; x++) {
 				let i = y * this.fullWidth * 4 + x * 4;
-				this.buffer.data[i+0] = c[R]
-				this.buffer.data[i+1] = c[G]
-				this.buffer.data[i+2] = c[B]
+				this.buffer.data[i+0] = c.r
+				this.buffer.data[i+1] = c.g
+				this.buffer.data[i+2] = c.b
 				this.buffer.data[i+3] = 255
 			}
 		}
@@ -680,9 +699,9 @@ class Game {
 				if (y*ps + yy < 0) { continue; }
 				if (y*ps + yy >= this.fullHeight) { break; }
 				let i = coord(x*ps + xx, y*ps+yy, this.fullWidth);
-				this.buffer.data[i+0] = c[R];
-				this.buffer.data[i+1] = c[G];
-				this.buffer.data[i+2] = c[B];
+				this.buffer.data[i+0] = c.r;
+				this.buffer.data[i+1] = c.g;
+				this.buffer.data[i+2] = c.b;
 				this.buffer.data[i+3] = 255;
 			}
 		}
@@ -783,10 +802,10 @@ class Game {
 		
 		if (r == 0) { return; }
 		while (y0 >= x0) {
-			this.scanLine(p[X] - x0, p[X] + x0, p[Y] - y0, c);
-			this.scanLine(p[X] - y0, p[X] + y0, p[Y] - x0, c);
-			this.scanLine(p[X] - x0, p[X] + x0, p[Y] + y0, c);
-			this.scanLine(p[X] - y0, p[X] + y0, p[Y] + x0, c);
+			this.scanLine(p.x - x0, p.x + x0, p.y - y0, c);
+			this.scanLine(p.x - y0, p.x + y0, p.y - x0, c);
+			this.scanLine(p.x - x0, p.x + x0, p.y + y0, c);
+			this.scanLine(p.x - y0, p.x + y0, p.y + x0, c);
 			
 			if (d < 0) { d += 4 * x0 + 6; x0++; }
 			else { d += 4 * (x0 - y0) + 10; x0++; y0--; }
@@ -811,10 +830,10 @@ class Game {
 		let x,y;
 		x = 0; y = h;
 		for (; b2 * x <= a2 * y; x ++) {
-			this.draw(p[X] + x, p[Y] + y, c);
-			this.draw(p[X] - x, p[Y] + y, c);
-			this.draw(p[X] + x, p[Y] - y, c);
-			this.draw(p[X] - x, p[Y] - y, c);
+			this.draw(p.x + x, p.y + y, c);
+			this.draw(p.x - x, p.y + y, c);
+			this.draw(p.x + x, p.y - y, c);
+			this.draw(p.x - x, p.y - y, c);
 			if (sigma >= 0) { sigma += fa2 * (1 - y); y--; }
 			sigma += b2 * ((4 * x) + 6);
 		}
@@ -822,10 +841,10 @@ class Game {
 		sigma = 2 * a2 + b2 * (1 - 2 * w);
 		x = w; y = 0;
 		for (; a2 * y < b2 * x; y++) {
-			this.draw(p[X] + x, p[Y] + y, c);
-			this.draw(p[X] - x, p[Y] + y, c);
-			this.draw(p[X] + x, p[Y] - y, c);
-			this.draw(p[X] - x, p[Y] - y, c);
+			this.draw(p.x + x, p.y + y, c);
+			this.draw(p.x - x, p.y + y, c);
+			this.draw(p.x + x, p.y - y, c);
+			this.draw(p.x - x, p.y - y, c);
 			if (sigma >= 0) { sigma += fb2 * (1 - x); x-- }
 			sigma += a2 * ((4 * y) + 6);
 		}
@@ -851,8 +870,8 @@ class Game {
 		x = 0; 
 		y = h;
 		for (;b2 * x <= a2*y; x++) {
-			this.scanLine(p[X] - x, p[X] + x, p[Y] - y, c);
-			this.scanLine(p[X] - x, p[X] + x, p[Y] + y, c);
+			this.scanLine(p.x - x, p.x + x, p.y - y, c);
+			this.scanLine(p.x - x, p.x + x, p.y + y, c);
 			
 			if (sigma >= 0) { sigma += fa2 * (1 - y); y--; }
 			sigma += b2 * ((4 * x) + 6);
@@ -862,8 +881,8 @@ class Game {
 		x = w; 
 		y = 0;
 		for (;a2 * y <= b2 * x; y++) {
-			this.scanLine(p[X] - x, p[X] + x, p[Y] - y, c);
-			this.scanLine(p[X] - x, p[X] + x, p[Y] + y, c);
+			this.scanLine(p.x - x, p.x + x, p.y - y, c);
+			this.scanLine(p.x - x, p.x + x, p.y + y, c);
 			
 			if (sigma >= 0) { sigma += fb2 * (1 - x); x--; }
 			sigma += a2 * ((4 * y) + 6);
@@ -877,19 +896,19 @@ class Game {
 	drawRect(p, w, h, c) {
 		if (!h) {
 			c = w;
-			w = p[W];
-			h = p[H];
+			w = p.w;
+			h = p.h;
 		} else if (!c) {
 			let p2 = w;
 			c = h;
-			if (p[X] > p2[X]) { const t = p[X]; p[X] = p2[X]; p2[X] = t; }
-			if (p[Y] > p2[Y]) { const t = p[Y]; p[Y] = p2[Y]; p2[Y] = t; }
-			w = p2[X] - p[X];
-			h = p2[Y] - p[Y];
+			if (p.x > p2.x) { const t = p.x; p.x = p2.x; p2.x = t; }
+			if (p.y > p2.y) { const t = p.y; p.y = p2.y; p2.y = t; }
+			w = p2.x - p.x;
+			h = p2.y - p.y;
 		}
-		const pa = [p[X]+w, p[Y]];
-		const pb = [p[X],p[Y]+h];
-		const pc = [pa[X], pb[Y]];
+		const pa = [p.x+w, p.y];
+		const pb = [p.x,p.y+h];
+		const pc = [pa.x, pb.y];
 		this.drawLine(p, pa, c);
 		this.drawLine(p, pb, c);
 		this.drawLine(pb, pc, c);
@@ -903,21 +922,21 @@ class Game {
 	fillRect(p, w, h, c) {
 		if (!h) {
 			c = w;
-			w = p[W];
-			h = p[H];
+			w = p.w;
+			h = p.h;
 		} else if (!c) { 
 			let p2 = w;
 			c = h;
-			if (p[X] > p2[X]) { const t = p[X]; p[X] = p2[X]; p2[X] = t; }
-			if (p[Y] > p2[Y]) { const t = p[Y]; p[Y] = p2[Y]; p2[Y] = t; }
-			w = p2[X] - p[X];
-			h = p2[Y] - p[Y];
+			if (p.x > p2.x) { const t = p.x; p.x = p2.x; p2.x = t; }
+			if (p.y > p2.y) { const t = p.y; p.y = p2.y; p2.y = t; }
+			w = p2.x - p.x;
+			h = p2.y - p.y;
 		}
 		
-		let x1 = p[X]; if (x1 < 0) { x1 = 0; }
-		let y1 = p[Y]; if (y1 < 0) { y1 = 0; }
-		let x2 = p[X] + w; if (x2 >= this.width) { x2 = this.width; }
-		let y2 = p[Y] + h; if (y2 >= this.height) { y2 = this.height; }
+		let x1 = p.x; if (x1 < 0) { x1 = 0; }
+		let y1 = p.y; if (y1 < 0) { y1 = 0; }
+		let x2 = p.x + w; if (x2 >= this.width) { x2 = this.width; }
+		let y2 = p.y + h; if (y2 >= this.height) { y2 = this.height; }
 		
 		for (let y = y1; y < y2; y++) {
 			for (let x = x1; x < x2; x++) {
@@ -933,15 +952,15 @@ class Game {
 		if (!spr) { return; }
 		const sw = spr.width;
 		const sh = spr.height;
-		const px = p[X];
-		const py = p[Y];
+		const px = p.x;
+		const py = p.y;
 		
 		for (let y = 0; y < sh; y++) {
 			for (let x = 0; x < sw; x++) {
 				const pixel =  spr.pixel(x,y);
 				
-				if (!pixel[A] || pixel[A] > .5) {
-					if (pixel[A] === 0) { continue; }
+				if (!pixel.a || pixel.a > .5) {
+					if (pixel.a === 0) { continue; }
 					this.draw(px+x, py+y, pixel);
 				}
 				
@@ -955,14 +974,14 @@ class Game {
 		@param {Rect} rect region of sprite to draw */
 	drawPartialSprite(p, spr, rect) {
 		if (!spr) { return; }
-		const ox = rect[X];
-		const oy = rect[Y];
-		const w = rect[W];
-		const h = rect[H];
+		const ox = rect.x;
+		const oy = rect.y;
+		const w = rect.w;
+		const h = rect.h;
 		const sw = spr.width;
 		const sh = spr.height;
-		const px = p[X];
-		const py = p[Y];
+		const px = p.x;
+		const py = p.y;
 		
 		for (let y = 0; y < h; y++) {
 			if (y+oy < 0 || y+oy >= sh) { continue; }
@@ -986,8 +1005,8 @@ class Game {
 		
 		let sx = 0;
 		let sy = 0;
-		const px = p[X];
-		const py = p[Y];
+		const px = p.x;
+		const py = p.y;
 		for (let char of text) {
 			if (char === '\n') {
 				sx = 0;
@@ -1002,7 +1021,7 @@ class Game {
 				for (let xx = 0; xx < w; xx++) {
 					for (let yy = 0; yy < h; yy++) {
 						const pixel = glyph.pixel(xx,yy);
-						if (pixel && pixel[R] > 0) {
+						if (pixel && pixel.r > 0) {
 							const x = px + sx + xx;
 							const y = py + sy + yy;
 							this.draw(x, y, color);
@@ -1030,7 +1049,7 @@ class Game {
 		@param {Color} color color to draw with */
 	drawTextCentered(p, text, color) {
 		const len = this.font.measure(text);
-		drawText([p[X] - len[X]/2, p[Y] - len[Y]/2], text, color);
+		drawText([p.x - len.x/2, p.y - len.y/2], text, color);
 	}
 	
 	/** Draws text with an outline
@@ -1062,8 +1081,8 @@ class Game {
 		
 		let sx = 0;
 		let sy = 0;
-		const px = p[X];
-		const py = p[Y];
+		const px = p.x;
+		const py = p.y;
 		for (let c of text) {
 			if (c == '\n') {
 				sx = 0;
@@ -1072,7 +1091,7 @@ class Game {
 				const glyph = this.font.glyphs[c];
 				function hasPixel(x,y) {
 					const pix = glyph.pixel(x,y);
-					return pix && pix[R] > 0;
+					return pix && pix.r > 0;
 				}
 				if (glyph) {
 					const w = glyph.width;
@@ -1082,7 +1101,7 @@ class Game {
 					for (let i = 0; i < w; i++) {
 						for (let j = 0; j < h; j++) {
 							const pixel = glyph.pixel(i,j);
-							if (pixel && pixel[R] > 0) {
+							if (pixel && pixel.r > 0) {
 								this.draw(px+sx+i, py+sy+j, col);
 								if (!alreadyDrawn(i-1, j) && (i == 0 || !hasPixel(i-1, j))) { this.draw(px + sx + i - 1, py + sy + j, outlineCol); drawn(i-1, j); }
 								if (!alreadyDrawn(i, j-1) && (j == 0 || !hasPixel(i, j-1))) { this.draw(px + sx + i, py + sy + j - 1, outlineCol); drawn(i, j-1); }
@@ -1110,7 +1129,7 @@ class Game {
 		@param {Color} outlineCol color to draw with */
 	drawTextCenteredOutline(p, text, col, outlineCol) {
 		const len = this.font.measure(text);
-		drawTextOutline([p[X] - len[X]/2, p[Y] - len[Y]/2], text, col, outlineCol);
+		drawTextOutline([p.x - len.x/2, p.y - len.y/2], text, col, outlineCol);
 	}
 	
 }
