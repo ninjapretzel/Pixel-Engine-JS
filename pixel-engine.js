@@ -380,6 +380,19 @@ function abs(v) {
 	}
 	return v < 0 ? -v : v; 
 }
+
+function fmod(a, b) {
+	if (Array.isArray(a) && Array.isArray(b)) {
+		const result = [];
+		for (let i = 0; i < v.length; i++) {
+			result[i] = fmod(a[i], b[i]);
+		}
+		return result;
+	}
+	const c = frac(abs(a/b)) * abs(b);
+	return (a < 0) ? -c : c;
+}
+
 /** Returns a random integer
 	@param {number} a First endpoint (required)
 	@param {number} b Second endpoint (defaults to zero)
@@ -417,12 +430,14 @@ function rgb(r,g,b,a=1.0) {
 	const aa = Math.floor(a*255);
 	return [ rr, gg, bb, aa ]; 
 }
+
 /** Helper function to get a style from floating-point HSV colors [0,1]
 	@param {number} h HUE component in [0, 1]
 	@param {number} s SAT component in [0, 1]
 	@param {number} v VAL component in [0, 1]
 	@returns {string} style representing HSV color */
 function hsv(h,s,v,a=1.0) {
+	if (h < 0) { h *= -1; }
 	h = fmod(h, 1.0);
 	if (h < 0) { h += 1.0; }
 	if (s == 0) { return rgb(v,v,v,a); }
