@@ -31,6 +31,7 @@ function pixelate(context){
 /** @typedef {[number, number, number, number]} Rect rectangle in [X,Y,W,H] form */
 /** constant for position of width in rectangle  */ const W = 2;
 /** constant for position of height in rectangle */ const H = 3;
+/** Retro font pixel data */
 const RETRO_DATA= [
 	0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,1,1,0,1,1,0,0,0,1,1,0,1,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,
 	0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,1,1,0,1,1,0,0,0,1,1,0,1,1,0,0,0,1,1,1,1,1,0,0,1,1,0,0,0,1,1,0,0,1,1,0,1,1,0,0,0,1,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,1,1,0,0,1,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,
@@ -81,6 +82,7 @@ const RETRO_DATA= [
 	0,1,1,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,1,1,1,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,0,1,1,0,0,1,1,0,0,0,1,1,0,0,1,1,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,1,1,1,0,0,0,0,0,1,1,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,
 	0,1,1,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 ]
+/* Retro font palette data */
 const RETRO_PALETTE = [ TRANSPARENT, WHITE ]
 
 
@@ -246,13 +248,11 @@ class Font {
 	}
 }
 /** Loads a font where all glyphs are the same size 
- @param {string} url location of font asset
+ @param {string} spr sprite data to use for loading glyphs
  @param {number} w width of font glyphs
  @param {number} h height of font glyphs
  @returns {Font} loaded font object */
-function loadFixedFont(url, w, h) {
-	// const spr = await loadPNG(url);
-	const spr = Sprite.fromData(128, 48, RETRO_DATA, RETRO_PALETTE);
+function loadAsciiFont(spr, w, h) {
 	const start = ' '.charCodeAt(0);
 	const glyphs = {}
 	for (let c = start; c < 128; c++) {
@@ -275,15 +275,8 @@ function loadFixedFont(url, w, h) {
 /** Loads the default "Retro" font 
  @returns {Font} Retro font */
 function loadRetroFont() {
-	try {
-		return loadFixedFont("/fonts/Retro.png", 8, 8); 
-	} catch {
-		try {
-			return loadFixedFont("/Pixel-Engine-JS/fonts/Retro.png", 8, 8); 
-		} catch {
-			console.error("Failed to load Retro font");
-		}
-	}
+	const spr = Sprite.fromData(128, 48, RETRO_DATA, RETRO_PALETTE);
+	return loadAsciiFont(spr, 8, 8); 
 }
 
 /** TAU > PI. Specifically, TAU = 2 * PI */
