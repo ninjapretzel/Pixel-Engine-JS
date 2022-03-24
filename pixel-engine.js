@@ -247,7 +247,7 @@ class Font {
 		return [rx, ry];
 	}
 }
-/** Loads a font where all glyphs are the same size 
+/** Loads an ASCII font where all glyphs are the same size 
  @param {string} spr sprite data to use for loading glyphs
  @param {number} w width of font glyphs
  @param {number} h height of font glyphs
@@ -591,8 +591,8 @@ class Game {
 	}
 	
 	async loader() {
-		this.load();
 		this.font = loadRetroFont();
+		this.load();
 		this.loaded = true;	
 		this.refresh = setInterval( ()=>{
 			this.tick();
