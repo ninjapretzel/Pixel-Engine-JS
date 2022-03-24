@@ -32,14 +32,18 @@
 	<script>
 const canvas = document.getElementById("main");
 class SampleGame extends Game {
+	frame = 1;
 	update() {
 		clear(BLACK);
 		drawTextCentered([160,50], "Pixel-Engine-JS", WHITE);
 		drawTextCentered([160,70], "See samples below", WHITE);
-		drawTextCenteredOutline([160, 100], "Last Updated 3/23/22", WHITE, RED);
+		const col1 = hsv(this.frame / 100, 1, 1);
+		const col2 = hsv(this.frame / 100 + .5, 1, 1);
+		this.frame++;
+		drawTextCenteredOutline([160, 100], "Last Updated 3/24/22", col2, col1);
 	}
 }
-const game = new SampleGame(canvas, 2, 5);
+const game = new SampleGame(canvas, 2, 10);
 
 
 	</script>
