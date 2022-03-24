@@ -380,7 +380,10 @@ function abs(v) {
 	}
 	return v < 0 ? -v : v; 
 }
-
+/** Gets the remainder of a/b
+	@param {Array|number} a numerator
+	@param {Array|number} b denominator
+	@returns {Array|number} result of fmod operation*/
 function fmod(a, b) {
 	if (Array.isArray(a) && Array.isArray(b)) {
 		const result = [];
