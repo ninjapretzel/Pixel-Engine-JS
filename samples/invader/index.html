@@ -12,6 +12,7 @@
 		<script src="../../pixel-engine.js"></script>
 		<!-- Invader generation -->
 		<script src="./invader.js"></script>
+		<script src="./index.js" defer></script>
 	</head>
 	<body>
 		<div class="center">
@@ -20,55 +21,4 @@
 			</canvas>
 		</div>
 	</body>
-	<script>
-const canvas = document.getElementById("main");
-let bgColor = [ 10, 40, 20 ]
-const sz = 12;
-const w = Math.floor(canvas.width / sz / 2);
-const h = Math.floor(canvas.height / sz / 2);
-const invaders = []
-
-for (let y = 0; y < h; y++) {
-	for (let x = 0; x < w; x++) {
-		const invader = makeInvader(7,7, [TRANSPARENT, nextColor(), nextColor()]);
-		invaders.push(invader);
-	}
-}
-const anim = renderInvaderPoses(12341);
-let frame = 0;
-let pose = 0;
-let delay = 5;
-
-let first = true;
-class Demo extends Game {
-	update() {
-		first = false;
-		clear(bgColor)
-		
-		for (let y = 0; y < h; y++) {
-			for (let x = 0; x < w; x++) {
-				const invader = invaders[y * w + x];
-				if (keyPressed("s")) { 
-					invader.palette[1] = nextColor();
-					invader.palette[2] = nextColor();
-				}
-				drawSprite([x * sz, y * sz], invader);
-			}
-		}
-		
-		let pos = mousePos();
-		pos.x -= Math.floor(anim[0].width/2)
-		pos.y -= Math.floor(anim[0].height/2)
-		drawSprite(pos, anim[pose % anim.length]);
-		frame++;
-		if (frame % delay == 0) {
-			pose++;
-		}
-		
-	}
-}
-	
-const game = new Demo(canvas, 8);
-
-	</script>
 </html>

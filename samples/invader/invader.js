@@ -74,11 +74,11 @@ function splatBits(mask, minBits) {
 /** Settings used to render an invader */
 class InvaderRenderSettings {
 	/** Control number of pose frames to render*/
-	minFrames = 2; maxFrames = 5;
+	minFrames = 2; maxFrames = 7;
 	/** Get number of pose frames to render */
 	get nextFrames() { return nextInt(this.minFrames, this.maxFrames+1); }
 	/** Control number of layers to create. Any after 1 are considered 'decoration' layers */
-	minLayers = 2; maxLayers = 5;
+	minLayers = 2; maxLayers = 3;
 	/** Get number of layers to render */
 	get nextLayers() { return nextInt(this.minLayers, this.maxLayers+1); }
 	/** Control of sprite dimension for both width and height */
@@ -104,6 +104,21 @@ class InvaderRenderSettings {
 	minAnim = 1; maxAnim = 5;
 	/** Get the number of pixels to change on a pose */
 	get nextAnim() { return nextInt(this.minAnim, this.maxAnim+1); }
+	
+	/** Constructor. potentially copies from an existing settings object
+		@param {InvaderRenderSettings?} o optional settings to copy from*/
+	constructor(o = null) {
+		if (o) {
+			this.minFrames = o.minFrames; this.maxFrames = o.maxFrames;
+			this.minLayers = o.minLayers; this.maxLayers = o.maxLayers;
+			this.minSize = o.minSize; this.maxSize = o.maxSize;
+			this.hueChange = o.hueChange;
+			this.minSatChange = o.minSatChange; this.maxSatChange = o.maxSatChange;
+			this.minValChange = o.minValChange; this.maxValChange = o.maxValChange;
+			this.minDeco = o.minDeco; this.maxDeco = o.maxDeco;
+			this.minAnim = o.minAnim; this.maxAnim = o.maxAnim;
+		}
+	}
 }
 
 function renderInvader(spr, bits, index) {
