@@ -160,8 +160,9 @@ class Demo extends Game {
 			entity.draw(this);
 		}
 		
+		this.drawTextCentered([this.width/2, this.height-10], "Press 'R' to generate\n    new invaders", WHITE);
 	}
 }
 	
-const game = new Demo(canvas, 4);
+const game = new Demo(canvas, 3);
 game.reset();
