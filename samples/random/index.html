@@ -25,9 +25,9 @@ class RandomGame extends Game {
 		
 		for (let x = 0; x < this.width; x++) {
 			for (let y = 0; y < this.width; y++) {
-				const r = random(256);
-				const g = random(256);
-				const b = random(256);
+				const r = randomInt(256);
+				const g = randomInt(256);
+				const b = randomInt(256);
 				
 				draw(x,y, [r,g,b]);
 			}

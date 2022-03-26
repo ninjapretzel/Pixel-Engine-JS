@@ -33,9 +33,13 @@ Object.defineProperty(Array.prototype, "y", {
 Object.defineProperty(Array.prototype, "w", {
 	get() { return this[2]; }, set(v) { this[2] = v; }, enumerable: false,	
 });
+Object.defineProperty(Array.prototype, "z", {
+	get() { return this[2]; }, set(v) { this[2] = v; }, enumerable: false,	
+});
 Object.defineProperty(Array.prototype, "h", {
 	get() { return this[3]; }, set(v) { this[3] = v; }, enumerable: false,	
 });
+
 
 Object.defineProperty(Array.prototype, "r", {
 	get() { return this[0]; }, set(v) { this[0] = v; }, enumerable: false,	
@@ -396,11 +400,23 @@ function fmod(a, b) {
 	return (a < 0) ? -c : c;
 }
 
-/** Returns a random integer
+/** Returns a random integer in the given range
 	@param {number} a First endpoint (required)
 	@param {number} b Second endpoint (defaults to zero)
-	@returns {number} integer in range [a, b) or [0, a)*/
-function random(a,b=0) { return Math.floor(a + (b-a) * Math.random()); }
+	@returns {number} integer in range [a, b) if b is specified, otherwise [0, a) */
+function randomInt(a, b=0) { 
+	if (b == 0) { const t = a; a = b; b = t; }
+	return Math.floor(a + (b-a) * Math.random()); 
+}
+/** Returns a random number in the given range
+	@param {number} a First endpoint (required)
+	@param {number} b Second endpoint (defaults to zero)
+	@returns {number} number in range [a, b) if b is specified, otherwise [0, a) */
+function randomFloat(a, b=0) { 
+	if (b == 0) { const t = a; a = b; b = t; }
+	return a + (b-a) * Math.random();
+}
+
 /** Helper to make a {Color} from a hex number in ARGB form
 	@param {number} n Hex number to convert to {Color}
 	@returns {Color} color of specified number */
@@ -425,7 +441,7 @@ function RGBA(n) {
 	@param {number} r RED component in [0, 1]
 	@param {number} g GRN component in [0, 1]
 	@param {number} b BLU component in [0, 1]
-	@returns {string} style representing RGB color */
+	@returns {Color} RGB color */
 function rgb(r,g,b,a=1.0) { 
 	const rr = Math.floor(r*255);
 	const gg = Math.floor(g*255);
@@ -435,11 +451,12 @@ function rgb(r,g,b,a=1.0) {
 }
 
 /** Helper function to get a style from floating-point HSV colors [0,1]
-	@param {number} h HUE component in [0, 1]
+	@param {number|Array} h either the HUE component in [0, 1] or an array of [h,s,v,a]
 	@param {number} s SAT component in [0, 1]
 	@param {number} v VAL component in [0, 1]
-	@returns {string} style representing HSV color */
+	@returns {Color} HSV color as RGB color */
 function hsv(h,s,v,a=1.0) {
+	if (Array.isArray(h)) { return hsv(h[0], h[1], h[2], h[3]); }
 	if (h < 0) { h *= -1; }
 	h = fmod(h, 1.0);
 	if (h < 0) { h += 1.0; }
@@ -456,6 +473,40 @@ function hsv(h,s,v,a=1.0) {
 	else if (i == 3) { return rgb(p,q,v,a); }
 	else if (i == 4) { return rgb(t,p,v,a); }
 	return rgb(v,p,q,a);
+}
+/** Turns the given {Color} into an HSV color */
+function toHsv(color) {
+	const r = color.r / 255;
+	const g = color.g / 255;
+	const b = color.b / 255;
+	const a = color.a / 255;
+	const hsva = [0,0,0,a];
+	const max = Math.max(r,g,b);
+	if (max <= 0) { return hsva; }
+	
+	// Value
+	hsva.z = max;
+	
+	const min = Math.min(r,g,b); 
+	const delta = max - min;
+	// Saturation
+	hsva.y = delta/max;
+	
+	// Hue
+	let h;
+	if (r == max) {
+		h = (g - b) / delta;
+	} else if (g == max) {
+		h = 2 + (b - r) / delta;
+	} else {
+		h = 4 + (r - g) / delta;
+	}
+	h /= 6;
+	if (h < 0) { h += 1; }
+	if (h > 1) { h -= 1; }
+	hsva.x = h;
+	
+	return hsva;
 }
 /** Helper function to see if a rectangle contains a point 
 	@param {Rect} rect rectangle to check 

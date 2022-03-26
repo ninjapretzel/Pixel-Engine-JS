@@ -28,7 +28,7 @@ let thingCol1 = [ 177, 222, 133 ]
 let thingCol2 = [ 155, 255, 166 ]
 let things = [ ]
 for (let i = 0; i < 10; i++) {
-	things[i] = [ random(160), random(120) ];
+	things[i] = [ randomInt(160), randomInt(120) ];
 }
 let rectA = [ 30, 30, 10, 10];
 class Demo extends Game {
@@ -38,11 +38,11 @@ class Demo extends Game {
 		if (keyHeld('a')) { pos.x -= speed; }
 		if (keyHeld('d')) { pos.x += speed; }
 		if (keyPressed('b') || mousePressed(LEFT_MOUSE)) {
-			bgColor = [ random(33,111), random(33,111), random(33,111) ]
+			bgColor = [ randomInt(33,111), randomInt(33,111), randomInt(33,111) ]
 		}
 		if (keyReleased('p') || mousePressed(RIGHT_MOUSE)) {
-			playerColor1 = [ random(99), random(99), random(99) ]
-			playerColor2 = [ random(99,155), random(99,155), random(99,155) ]
+			playerColor1 = [ randomInt(99), randomInt(99), randomInt(99) ]
+			playerColor2 = [ randomInt(99,155), randomInt(99,155), randomInt(99,155) ]
 		}
 		const min = [0,0];
 		const max = [this.width-1,this.height-1]
