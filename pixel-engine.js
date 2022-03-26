@@ -192,9 +192,9 @@ class PalettedSprite {
 		this.palette = palette;
 	}
 	/** Gets the size of this sprite as a Point */
-	get size() { return [this.w,this.h]; }
+	get size() { return [this.width,this.height]; }
 	/** Gets the number of pixels in this sprite */
-	get length() { return this.w * this.h; }
+	get length() { return this.width * this.height; }
 	/** Gets the color at position (x,y) */
 	pixel(x, y) {
 		const i = x + y * this.width;
