@@ -24,19 +24,27 @@ function pixelate(context){
 /** @typedef {[Number, Number, Number, Number?]} Color Colors are specifically an array of [R,G,B,A?] */
 /** @typedef {[Number, Number]} Point Points are specifically an array of [X,Y] */
 /** @typedef {[number, number, number, number]} Rect rectangle in [X,Y,W,H] form */
+
+// Duckpunch properties for vector/rect/color etc
 Object.defineProperty(Array.prototype, "x", {
 	get() { return this[0]; }, set(v) { this[0] = v; }, enumerable: false,	
 });
 Object.defineProperty(Array.prototype, "y", {
 	get() { return this[1]; }, set(v) { this[1] = v; }, enumerable: false,	
 });
-Object.defineProperty(Array.prototype, "w", {
-	get() { return this[2]; }, set(v) { this[2] = v; }, enumerable: false,	
-});
 Object.defineProperty(Array.prototype, "z", {
 	get() { return this[2]; }, set(v) { this[2] = v; }, enumerable: false,	
 });
+Object.defineProperty(Array.prototype, "w", {
+	get() { return this[3]; }, set(v) { this[3] = v; }, enumerable: false,	
+});
+Object.defineProperty(Array.prototype, "width", {
+	get() { return this[2]; }, set(v) { this[2] = v; }, enumerable: false,	
+});
 Object.defineProperty(Array.prototype, "h", {
+	get() { return this[3]; }, set(v) { this[3] = v; }, enumerable: false,	
+});
+Object.defineProperty(Array.prototype, "height", {
 	get() { return this[3]; }, set(v) { this[3] = v; }, enumerable: false,	
 });
 
@@ -514,8 +522,8 @@ function toHsv(color) {
 function contains(rect, point) {
 	let x1 = rect.x;
 	let y1 = rect.y;
-	let x2 = rect.x + rect.w;
-	let y2 = rect.y + rect.h;
+	let x2 = rect.x + rect.width;
+	let y2 = rect.y + rect.height;
 	if (x1 > x2) { const t = x1; x1 = x2; x2 = t; }
 	if (y1 > y2) { const t = y1; y1 = y2; y2 = t; }
 	const x = point.x;
@@ -965,8 +973,8 @@ class Game {
 	drawRect(p, w, h, c) {
 		if (!h) {
 			c = w;
-			w = p.w;
-			h = p.h;
+			w = p.width;
+			h = p.height;
 		} else if (!c) {
 			let p2 = w;
 			c = h;
@@ -991,8 +999,8 @@ class Game {
 	fillRect(p, w, h, c) {
 		if (!h) {
 			c = w;
-			w = p.w;
-			h = p.h;
+			w = p.width;
+			h = p.height;
 		} else if (!c) { 
 			let p2 = w;
 			c = h;
@@ -1045,8 +1053,8 @@ class Game {
 		if (!spr) { return; }
 		const ox = rect.x;
 		const oy = rect.y;
-		const w = rect.w;
-		const h = rect.h;
+		const w = rect.width;
+		const h = rect.height;
 		const sw = spr.width;
 		const sh = spr.height;
 		const px = p.x;
