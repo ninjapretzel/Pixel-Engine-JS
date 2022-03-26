@@ -650,8 +650,8 @@ class Game {
 		this.pixelScale = pixelScale;
 		this.fullWidth = canvas.width;
 		this.fullHeight = canvas.height;
-		this.width = canvas.width / pixelScale;
-		this.height = canvas.height / pixelScale;
+		this.width = Math.floor(canvas.width / pixelScale);
+		this.height = Math.floor(canvas.height / pixelScale);
 		console.log("Initializing game", this.width, "x", this.height, "@",pixelScale,"px");
 		
 		this.buffer = this.ctx.createImageData(this.canvas.width, this.canvas.height);
