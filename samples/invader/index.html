@@ -10,6 +10,8 @@
 		<script src="../../UPNG.js"></script>
 		<!-- Actual engine: -->
 		<script src="../../pixel-engine.js"></script>
+		<!-- Invader generation -->
+		<script src="./invader.js"></script>
 	</head>
 	<body>
 		<div class="center">
@@ -19,89 +21,6 @@
 		</div>
 	</body>
 	<script>
-function sfc32(a, b, c, d) {
-	return function() {
-		a >>>= 0; b >>>= 0; c >>>= 0; d >>>= 0; 
-		var t = (a + b) | 0;
-		a = b ^ b >>> 9;
-		b = c + (c << 3) | 0;
-		c = (c << 21 | c >>> 11);
-		d = d + 1 | 0;
-		t = t + d | 0;
-		c = c + t | 0;
-		return (t >>> 0) / 4294967296;
-	}
-}
-const seed = 31337 ^ 0xDEADBEEF;
-const rand = sfc32(0x9E3779B9, 0x243F6A88, 0xB7E15162, seed);
-
-
-function randomBits(chance=.5) {
-	const bits = []
-	for (let i = 0; i < 64; i++) { bits[i] = rand() < chance ? 1 : 0; }
-	return bits;
-}
-function and(bits, mask) {
-	const result = [];
-	for (let i = 0; i < 64; i++) {
-		result[i] = bits[i] && mask[i];
-	}
-	return result;
-}
-function or(bits, mask) {
-	const result = [];
-	for (let i = 0; i < 64; i++) {
-		result[i] = bits[i] || mask[i];
-	}
-	return result;
-}
-function xor(bits, mask) {
-	const result = [];
-	for (let i = 0; i < 64; i++) {
-		result[i] = !!(bits[i] ^ mask[i]);
-	}
-	return result;
-}
-function countBits(bits) { 
-	let cnt = 0;
-	for (let i = 0; i < 64; i++) { cnt += (bits[i] ? 1 : 0); }
-	return cnt;
-}
-
-function splatBits(mask, minBits) {
-	if (minBits >= countBits(mask)) { return randomBits(); }
-	let bits = randomBits();
-	while (countBits(bits) < minBits) {
-		bits = randomBits();
-	}
-	return bits;
-}
-function renderInvader(spr, bits, index) {
-	const w = spr.width;
-	const h = spr.height;
-	const oddW = w % 2 === 1;
-	const wBits = (oddW ? 1 : 0) + w / 2;
-	for (let yy = 0; yy < h; yy++) {
-		for (let xx = 0; xx < w; xx++) {
-			let i = yy * w + xx;
-			if (i >= 64) { return; }
-			
-			if (bits[i]) {
-				spr.setIndex(xx,yy, index);
-				spr.setIndex(w-1-xx, yy, index); // Mirroring
-			}
-		}
-	}
-}
-
-function makeInvader(w, h, colors) {
-	const spr = new PalettedSprite(w,h,colors);
-	for (let i = 1; i < colors.length; i++) {
-		const bits = randomBits(.2);
-		renderInvader(spr, bits, i);
-	}
-	return spr;
-}
 const canvas = document.getElementById("main");
 let bgColor = [ 10, 40, 20 ]
 const sz = 12;
@@ -109,15 +28,16 @@ const w = Math.floor(canvas.width / sz / 2);
 const h = Math.floor(canvas.height / sz / 2);
 const invaders = []
 
-function randomColor() {
-	return floor([ 255*rand(), 255*rand(), 255*rand() ]);
-}
 for (let y = 0; y < h; y++) {
 	for (let x = 0; x < w; x++) {
-		const invader = makeInvader(7,7, [TRANSPARENT, randomColor(), randomColor()]);
+		const invader = makeInvader(7,7, [TRANSPARENT, nextColor(), nextColor()]);
 		invaders.push(invader);
 	}
 }
+const anim = renderInvaderPoses(12341);
+let frame = 0;
+let pose = 0;
+let delay = 5;
 
 let first = true;
 class Demo extends Game {
@@ -129,16 +49,21 @@ class Demo extends Game {
 			for (let x = 0; x < w; x++) {
 				const invader = invaders[y * w + x];
 				if (keyPressed("s")) { 
-					invader.palette[1] = randomColor();
-					invader.palette[2] = randomColor();
+					invader.palette[1] = nextColor();
+					invader.palette[2] = nextColor();
 				}
 				drawSprite([x * sz, y * sz], invader);
 			}
 		}
-		let pos = mousePos();
-		pos[0] -= 3; pos[1] -= 3;
-		drawSprite(pos, invaders[0]);
 		
+		let pos = mousePos();
+		pos.x -= Math.floor(anim[0].width/2)
+		pos.y -= Math.floor(anim[0].height/2)
+		drawSprite(pos, anim[pose % anim.length]);
+		frame++;
+		if (frame % delay == 0) {
+			pose++;
+		}
 		
 	}
 }
