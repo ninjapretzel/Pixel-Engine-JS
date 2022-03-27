@@ -21,45 +21,197 @@ function pixelate(context){
 /** Constant for dark gray */   const DARK_GRAY = [80,80,80];
 /** Constant for light gray */  const LIGHT_GRAY = [180,180,180];
 
+/** Constant for degrees to radians */ const DEG2RAD = (2 * Math.PI) / 360;
+/** Constant for radians to degrees */ const RAD2DEG = 360 / (Math.PI * 2);
+
 /** @typedef {[Number, Number, Number, Number?]} Color Colors are specifically an array of [R,G,B,A?] */
 /** @typedef {[Number, Number]} Point Points are specifically an array of [X,Y] */
 /** @typedef {[number, number, number, number]} Rect rectangle in [X,Y,W,H] form */
 
 // Duckpunch properties for vector/rect/color etc
 Object.defineProperty(Array.prototype, "x", {
-	get() { return this[0]; }, set(v) { this[0] = v; }, enumerable: false,	
+	get() { return this[0]; }, set(v) { this[0] = v; }	
 });
 Object.defineProperty(Array.prototype, "y", {
-	get() { return this[1]; }, set(v) { this[1] = v; }, enumerable: false,	
+	get() { return this[1]; }, set(v) { this[1] = v; }
 });
 Object.defineProperty(Array.prototype, "z", {
-	get() { return this[2]; }, set(v) { this[2] = v; }, enumerable: false,	
+	get() { return this[2] ?? 0; }, set(v) { this[2] = v; }
 });
 Object.defineProperty(Array.prototype, "w", {
-	get() { return this[3]; }, set(v) { this[3] = v; }, enumerable: false,	
+	get() { return this[3] ?? 0; }, set(v) { this[3] = v; }
 });
 Object.defineProperty(Array.prototype, "width", {
-	get() { return this[2]; }, set(v) { this[2] = v; }, enumerable: false,	
-});
-Object.defineProperty(Array.prototype, "h", {
-	get() { return this[3]; }, set(v) { this[3] = v; }, enumerable: false,	
+	get() { return this[2] ?? 0; }, set(v) { this[2] = v; }
 });
 Object.defineProperty(Array.prototype, "height", {
-	get() { return this[3]; }, set(v) { this[3] = v; }, enumerable: false,	
+	get() { return this[3] ?? 0; }, set(v) { this[3] = v; }	
+});
+Object.defineProperty(Array.prototype, "magnitude", {
+	get() { return Math.sqrt(this.x*this.x + this.y*this.y); },
+});
+Object.defineProperty(Array.prototype, "sqrMagnitude", {
+	get() { return this.x*this.x + this.y*this.y; }
+});
+Object.defineProperty(Array.prototype, "normalized", {
+	get() { const m = this.magnitude; return [ this.x/m, this.y/m ]; }
 });
 
+Object.defineProperty(Array.prototype, "scale", {
+	value(sc) { 
+		const result = [];
+		for (let i = 0; i < this.length; i++) { result[i] = this[i] * sc; }
+		return result;
+	}	
+});
+Object.defineProperty(Array.prototype, "add", {
+	value(other) {
+		const result = [];
+		for (let i = 0; i < this.length; i++) { result[i] = this[i] + other[i]; }
+		return result;
+	}
+});
+Object.defineProperty(Array.prototype, "sub", {
+	value(other) {
+		const result = [];
+		for (let i = 0; i < this.length; i++) { result[i] = this[i] - other[i]; }
+		return result;
+	}
+});
+Object.defineProperty(Array.prototype, "mul", {
+	value(other) {
+		const result = [];
+		for (let i = 0; i < this.length; i++) { result[i] = this[i] * other[i]; }
+		return result;
+	}
+});
+Object.defineProperty(Array.prototype, "div", {
+	value(other) {
+		const result = [];
+		for (let i = 0; i < this.length; i++) { 
+			if (other[i] === 0) { throw new Error("vector.div: Div by zero!"); }
+			result[i] = this[i] / other[i]; 
+		}
+		return result;
+	}
+});
+
+/** Perform a dot product between two vectors 
+	@param {Point} a first vector
+	@param {Point} b second vector
+	@returns {number} resulting dot product */
+function dot(a, b) {
+	let result = 0;
+	for (let i = 0; i < a.length; i++) { result += a[i] * b[i]; }
+	return result;
+}
+/** Get the distance between two vectors
+	@param {Point} a first vector
+	@param {Point} b second vector
+	@returns {number} distance between vectors */
+function distance(a, b) { return [a.x-b.x, a.y-b.y].magnitude; }
+
+/** Reflect a direction about a surface normal
+	@param {Point} dir direction to reflect
+	@param {Point} normal surface normal to reflect about
+	@returns {Point} result of reflection */
+function reflect(dir, normal) {
+	normal = normal.normalized;
+	const f = -2 * dot(dir, normal);
+	return [ f*normal.x + dir.x, f*normal.y + dir.y ];
+}
+/** Project a direction onto a surface normal
+	@param {Point} dir direction to project
+	@param {Point} normal surface normal to project onto
+	@returns {Point} result of projection */
+function project(dir, normal) {
+	const len = dot(normal, normal)
+	if (len < 1e-15) { return [0,0]; }
+	const d = dot(dir, normal)
+	return [ normal.x * d / len, normal.y * d / len ]
+}
+
+/** Get the angle between two vectors 
+	@param {Point} from first vector
+	@param {Point} to second vector
+	@returns {number} angle between vectors in degrees */
+function angle(from, to) {
+	const e = Math.sqrt(from.sqrMagnitude * to.sqrMagnitude); 
+	if (e < 1e-15) { return 0; }
+	const f = clamp(dot(from, to) / e, -1, 1);
+	return Math.acos(f) * RAD2DEG;
+}
+/** Get the signed angle between two vectors 
+	@param {Point} from first vector
+	@param {Point} to second vector
+	@returns {number} signed angle between vectors in degrees */
+function signedAngle(from, to) {
+	const a = angle(from, to);
+	const sign = Math.sign(from.x * to.y - from.y * to.x);
+	return a * sign;
+}
+
+Object.defineProperty(Array.prototype, "xMin", { get() { return this.x; } });
+Object.defineProperty(Array.prototype, "yMin", { get() { return this.y; } });
+Object.defineProperty(Array.prototype, "xMax", { get() { return this.x + this.width; } });
+Object.defineProperty(Array.prototype, "yMax", { get() { return this.y + this.height; } });
+
+Object.defineProperty(Array.prototype, "left", { get() { return this.x; } });
+Object.defineProperty(Array.prototype, "right", { get() { return this.x + this.width; } });
+Object.defineProperty(Array.prototype, "top", { get() { return this.y; } });
+Object.defineProperty(Array.prototype, "bottom", { get() { return this.y + this.height; } });
+
+Object.defineProperty(Array.prototype, "contains", {
+	value(point) {
+		return point.x >= this.xMin && point.x <= this.xMax && point.y >= this.yMin && point.y <= this.yMax;
+	}
+});
+Object.defineProperty(Array.prototype, "overlaps", {
+	value(other) {
+		return other.xMax > this.xMin && other.xMin < this.xMax && other.yMax > this.yMin && other.yMin < this.yMax;
+	}
+});
+Object.defineProperty(Array.prototype, "touches", {
+	value(other) {
+		return other.xMax >= this.xMin && other.xMin <= this.xMax && other.yMax >= this.yMin && other.yMin <= this.yMax;
+	}
+});
+
+/** Create a rect from the given min/max points
+	@param {number} xMin lower x bound
+	@param {number} yMin lower y bound
+	@param {number} xMax upper x bound
+	@param {number} yMax upper y bound
+	@returns {Rect} result rect */
+function minMaxRect(xMin, yMin, xMax, yMax) {
+	return [xMin, yMin, xMax-xMin, yMax-yMin];
+}
+/** Get a point within the given rect at coords between [0,1] 
+	@param {Rect} rect rectangle
+	@param {Point} coords normalized coords
+	@returns {Point} point within rectangle */
+function normToPoint(rect, coords) {
+	return [lerp(rect.xMin, rect.xMax, coords.x), lerp(rect.yMin, rect.yMax, coords.y)];
+}
+/** Normalize a point to a given rect 
+	@param {Rect} rect rectangle
+	@param {Point} point point within rectangle
+	@returns {Point} normalized coords */
+function pointToNorm(rect, point) {
+	return [inverseLerp(rect.xMin, rect.xMax, point.x), inverseLerp(rect.yMin, rect.yMax, point.y)];
+}
 
 Object.defineProperty(Array.prototype, "r", {
-	get() { return this[0]; }, set(v) { this[0] = v; }, enumerable: false,	
+	get() { return this[0]; }, set(v) { this[0] = v; }	
 });
 Object.defineProperty(Array.prototype, "g", {
-	get() { return this[1]; }, set(v) { this[1] = v; }, enumerable: false,	
+	get() { return this[1]; }, set(v) { this[1] = v; }	
 });
 Object.defineProperty(Array.prototype, "b", {
-	get() { return this[2]; }, set(v) { this[2] = v; }, enumerable: false,	
+	get() { return this[2]; }, set(v) { this[2] = v; }	
 });
 Object.defineProperty(Array.prototype, "a", {
-	get() { return this[3] ?? 255; }, set(v) { this[3] = v; }, enumerable: false,	
+	get() { return this[3] ?? 255; }, set(v) { this[3] = v; }	
 });
 
 /** Retro font pixel data */
@@ -392,6 +544,72 @@ function abs(v) {
 	}
 	return v < 0 ? -v : v; 
 }
+
+/** Linear interpolate the given numbers or vectors
+	@param {Array|number} a first endpoint
+	@param {Array|number} b second endpoint
+	@param {number} f amount to interpolate
+	@returns {Array|number} result of interpolation */
+function lerp(a, b, f) {
+	if (Array.isArray(a)) { 
+		const result = [];
+		for (let i = 0; i < a.length; i++) {
+			result[i] = lerp(a[i], b[i], f);
+		}
+		return result;
+	}
+	return a + (b-a) * clamp(f);
+}
+/** Inverse of the lerp function, gets a value between 0-1 based on where value is between [a,b] 
+	@param {Array|number} a first endpoint
+	@param {Array|number} b second endpoint
+	@param {Array|number} value value to inverse interpolate
+	@returns {Array|number} result of inverse interpolation */
+function inverseLerp(a, b, value) {
+	if (Array.isArray(a)) { 
+		const result = [];
+		for (let i = 0; i < a.length; i++) {
+			result[i] = inverseLerp(a[i], b[i], value[i]);
+		}
+		return result;
+	}
+	return (a != b) ? clamp((value-a)/(b-a)) : 0;
+}
+/** Linear interpolate the given numbers or vectors without clamp
+	@param {Array|number} a first endpoint
+	@param {Array|number} b second endpoint
+	@param {number} f amount to interpolate
+	@returns {Array|number} result of interpolation */
+function lerpUnclamped(a, b, f) {
+	if (Array.isArray(a)) {
+		const result = [];
+		for (let i = 0; i < a.length; i++) {
+			result[i] = lerpUnclamped(a[i], b[i], f);
+		}
+		return result;
+	}
+	return a + (b-a) * f;
+}
+/** Hermite interpolate the given numbers or vectors
+	@param {Array|number} a first endpoint
+	@param {Array|number} b second endpoint
+	@param {number} f amount to interpolate
+	@returns {Array|number} result of interpolation */
+function smoothStep(a, b, f) {
+	if (Array.isArray(a)) {
+		const result = [];
+		for (let i = 0; i < a.length; i++) {
+			result[i] = smoothStep(a[i], b[i], f);
+		}
+		return result;
+	}
+	// f = clamp(f);
+	// f = -2 * f * f * f + 3 * f * f
+	// return a * (1-f) + b * f;
+	const t = clamp((f-a)/(b-a));
+	return t*t*(3 - (2 * t));
+}
+
 /** Gets the remainder of a/b
 	@param {Array|number} a numerator
 	@param {Array|number} b denominator
