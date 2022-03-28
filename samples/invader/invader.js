@@ -74,7 +74,7 @@ function splatBits(mask, minBits) {
 /** Settings used to render an invader */
 class InvaderRenderSettings {
 	/** Control number of pose frames to render*/
-	minFrames = 2; maxFrames = 7;
+	minFrames = 2; maxFrames = 5;
 	/** Get number of pose frames to render */
 	get nextFrames() { return nextInt(this.minFrames, this.maxFrames+1); }
 	/** Control number of layers to create. Any after 1 are considered 'decoration' layers */
