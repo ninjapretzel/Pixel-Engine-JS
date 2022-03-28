@@ -1,5 +1,5 @@
 
-let bgColor = [ 10, 40, 20 ]
+let bgColor = [ 5, 10, 7 ]
 
 
 /** @abstract */
@@ -12,6 +12,31 @@ class Entity {
 	draw(game) {
 		if (this.sprite != null) {
 			game.drawSprite(this.position, this.sprite);
+		}
+	}
+}
+
+class Stars {
+	stars = []
+	update(game) {
+	//	console.log("Drawing " + this.stars.length + " stars");
+		for (let i = 0; i < this.stars.length; i++) {
+			//console.log("star # " + i + " at " + this.stars[i]);
+			this.stars[i].y += this.stars[i][2]
+			if (this.stars[i].y > game.height) {
+				this.stars.remove(this.stars[i]);
+				i--;
+				//console.log("Removed star");
+			}
+		}
+		if (randomFloat(1) < .4) {
+			//console.log("new star");
+			this.stars.push([randomInt(0, game.width), 0, randomInt(1, 4)])
+		}
+	}
+	draw(game) {
+		for (let i = 0; i < this.stars.length; i++) {
+			game.draw(this.stars[i], WHITE);
 		}
 	}
 }
@@ -223,7 +248,7 @@ function update(unit, delta) {
 	return false;
 }
 
-
+let stars = new Stars();
 class Demo extends Game {
 	lastTick = new Date().getTime();
 	drawBar(rect, text, fill, fillColor, backColor) {
@@ -238,6 +263,9 @@ class Demo extends Game {
 		this.clear(bgColor);
 		const time = new Date().getTime();
 		const delta = (time - this.lastTick) / 1000;
+		
+		stars.update(this);
+		stars.draw(this);
 		
 		if (update(player, delta)) {
 			attack(player, enemy);
