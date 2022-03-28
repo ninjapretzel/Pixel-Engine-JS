@@ -1305,6 +1305,7 @@ class Game {
 		@param {string} text text to draw
 		@param {Color} color color to draw with */
 	drawText(p, text, color) {
+		color ??= WHITE;
 		// scale = Math.floor(scale);
 		if (text === null || text === "") { return; }
 		
@@ -1363,6 +1364,8 @@ class Game {
 		@param {Color} col color inside text
 		@param {Color} outlineCol color for outline */
 	drawTextOutline(p, text, col, outlineCol) {
+		col ??= WHITE;
+		outlineCol ??= BLACK;
 		if (text == null || text == "") { return; }
 		let overdraw = []
 		const OUTLINE_HEIGHT = 2 + this.font.charHeight;
