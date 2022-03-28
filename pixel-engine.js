@@ -28,6 +28,16 @@ function pixelate(context){
 /** @typedef {[Number, Number]} Point Points are specifically an array of [X,Y] */
 /** @typedef {[number, number, number, number]} Rect rectangle in [X,Y,W,H] form */
 
+// Misc utilities
+Object.defineProperty(Array.prototype, "remove", {
+	value(val) {
+		const index = this.indexOf(val);
+		if (index >= 0) {
+			this.splice(index, 1);
+		}
+	}
+});
+
 // Duckpunch properties for vector/rect/color etc
 Object.defineProperty(Array.prototype, "x", {
 	get() { return this[0]; }, set(v) { this[0] = v; }	
