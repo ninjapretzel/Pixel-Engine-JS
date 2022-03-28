@@ -6,6 +6,8 @@ const w = Math.floor(canvas.width / sz / 2);
 const h = Math.floor(canvas.height / sz / 2);
 const invaders = []
 
+const base = new InvaderRenderSettings();
+
 const vibrant = new InvaderRenderSettings();
 vibrant.minFrames = 2; vibrant.maxFrames = 5;
 vibrant.minLayers = 2; vibrant.maxLayers = 10;
@@ -13,7 +15,7 @@ vibrant.hueChange = .3;
 vibrant.minSatChange = 0; vibrant.maxSatChange = 1;
 vibrant.minValChange = 0; vibrant.maxValChange = .5;
 vibrant.minDeco = 1; vibrant.maxDeco = 1;
-vibrant.minAnim = 1; vibrant.maxAnim = 1;
+vibrant.minAnim = 1; vibrant.maxAnim = 2;
 
 const simple = new InvaderRenderSettings();
 simple.minFrames = 2; simple.maxFrames = 4;
@@ -31,12 +33,12 @@ const simpleSpaz = new InvaderRenderSettings(simple);
 simpleSpaz.minFrames = 20; simpleSpaz.maxFrames = 40;
 
 const setArr = [
-	vibrant,
-	simple,
+	base,base,base,
+	vibrant,vibrant,vibrant,
+	simple,simple,simple,
 	spaz,
 	vibrantSpaz,
 	simpleSpaz,
-	new InvaderRenderSettings()
 ];
 
 /** @abstract */

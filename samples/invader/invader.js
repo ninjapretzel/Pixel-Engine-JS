@@ -16,7 +16,7 @@ function rng(seed) { return sfc32(0x9E3779B9, 0x243F6A88, 0xB7E15162, seed); }
 let rand = rng( 31337 ^ 0xDEADBEEF );
 function nextInt(a, b=0) { return Math.floor(a + (b-a) * rand()); }
 function nextFloat(a, b=0) { return a + (b-a) * rand(); }
-function nextColor() { return [ nextInt(255), nextInt(255), nextInt(255), 255 ]; }
+function nextColor() { return [ nextInt(50,255), nextInt(50,255), nextInt(50,255), 255 ]; }
 
 function randomBits(chance=.5) {
 	const bits = []
@@ -82,7 +82,7 @@ class InvaderRenderSettings {
 	/** Get number of layers to render */
 	get nextLayers() { return nextInt(this.minLayers, this.maxLayers+1); }
 	/** Control of sprite dimension for both width and height */
-	minSize = 4; maxSize = 10;
+	minSize = 5; maxSize = 10;
 	/** get dimensional size */
 	get nextSize() { return nextInt(this.minSize, this.maxSize+1); }
 	/** Control how much 'decoration' layers vary from base color */
@@ -168,7 +168,8 @@ function renderInvaderPoses(seed, sets) {
 	const maxBits = Math.floor(height * width - (height*(width/2)))
 	const bitMask = []
 	for (let i = 0; i < maxBits; i++) { bitMask[i] = 1; }
-	const baseColor = toHsv(nextColor());
+	const col = nextColor();
+	const baseColor = toHsv(col);
 	baseColor.a = 1;
 	baseFrame[0] = pickBits(bitMask, fill);
 	colors[0] = TRANSPARENT;
