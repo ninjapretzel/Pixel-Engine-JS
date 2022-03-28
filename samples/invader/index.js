@@ -1,5 +1,4 @@
 
-const canvas = document.getElementById("main");
 let bgColor = [ 10, 40, 20 ]
 const sz = 12;
 const w = Math.floor(canvas.width / sz / 2);
@@ -100,23 +99,22 @@ class Invader extends Entity {
 	}
 }
 
-const anim = renderInvaderPoses(12341);
+let anim = renderInvaderPoses(12341);
 let frame = 0;
 let pose = 0;
 let delay = 5;
-let first = true;
 
-
-const INTMAX = 2147483647;
+const MAX_SEED = 2147483647;
 class Demo extends Game {
 	reset() {
 		this.entities = []
 		const numInvaders = randomInt(40, 60);
 		const seeds = []
 		const which = []
-		const playerSeed = randomInt(0, INTMAX);
+		const playerSeed = randomInt(0, MAX_SEED);
+		anim = renderInvaderPoses(playerSeed);
 		for (let i = 0; i < numInvaders; i++) {
-			seeds[i] = randomInt(0, INTMAX);
+			seeds[i] = randomInt(0, MAX_SEED);
 			which[i] = randomInt(0, setArr.length);
 		}
 		for (let i = 0; i < numInvaders; i++) {
@@ -131,17 +129,16 @@ class Demo extends Game {
 		
 	}
 	update() {
-		first = false;
 		clear(bgColor)
 		
 		if (this.keyPressed("r")) {
 			this.reset();
 		}
 		
-		let pos = mousePos();
-		pos.x -= Math.floor(anim[0].width/2)
-		pos.y -= Math.floor(anim[0].height/2)
-		drawSprite(pos, anim[pose % anim.length]);
+		let mPos = mousePos();
+		mPos.x -= Math.floor(anim[0].width/2)
+		mPos.y -= Math.floor(anim[0].height/2)
+		drawSprite(mPos, anim[pose % anim.length]);
 		frame++;
 		if (frame % delay == 0) {
 			pose++;
@@ -166,5 +163,6 @@ class Demo extends Game {
 	}
 }
 	
+const canvas = document.getElementById("main");
 const game = new Demo(canvas, 3);
 game.reset();
