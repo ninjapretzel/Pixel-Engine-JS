@@ -906,7 +906,7 @@ class Game {
 	
 	async loader() {
 		this.font = loadRetroFont();
-		this.load();
+		await this.load();
 		this.loaded = true;	
 		this.refresh = setInterval( ()=>{
 			this.tick();
